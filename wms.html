@@ -44,6 +44,12 @@
       }).addTo(map);
       wms.getContainer().setAttribute('id', 'wmsContainer');
 
+      var bare = L.tileLayer.betterWms(url, {
+        layers: 'winsoft:bare',
+        transparent: true,
+        format: 'image/png'
+      }).addTo(map);
+
       var request = $.ajax({
 			url: 'http://localhost/geoserver/rest/layergroups',
 			type: 'GET',
