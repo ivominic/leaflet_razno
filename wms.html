@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+  <head>
+    <title>WMS GetFeatureInfo</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
+    
+    <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+    <style type="text/css">
+      html, body, #map {
+        margin: 0px;
+        height: 100%;
+        width: 100%;
+      }
+/* Change cursor when mousing over clickable layer */
+.leaflet-clickable {
+  cursor: crosshair !important;
+}
+/* Change cursor when over entire map */
+.leaflet-container {
+  cursor: help !important;
+}
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="js/L.TileLayer.BetterWMS.js"></script>
+    <script>
+      var map = L.map('map', {
+        center: [42,20],
+        zoom: 7
+      });
+      
+      //var url = 'http://localhost/geoserver/winsoft/wms';
+      var url = 'http://localhost/geoserver/wms';
+      
+      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
+      
+      var wms = L.tileLayer.betterWms(url, {
+        layers: 'winsoft:svetiljke',
+        transparent: true,
+        format: 'image/png'
+      }).addTo(map);
+      wms.getContainer().setAttribute('id', 'wmsContainer');
+
+      var request = $.ajax({
+			url: 'http://localhost/geoserver/rest/layergroups',
+			type: 'GET',
+			data: {} ,
+			crossDomain: true,
+      beforeSend: function(xhr) {xhr.setRequestHeader("Authorization","Basic " + btoa("admin:geoserver"))},
+			contentType: 'application/json; charset=utf-8',
+			success: function(data){
+				 conslode.log(data);
+			}
+		});
+    </script>  
+  </body>
+</html>

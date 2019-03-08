@@ -1,0 +1,315 @@
+<!doctype html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title> Leaflet testiranje </title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    </head>
+    <body>
+        <div class="row">
+            <div class='panel-heading text-center panel-relative'>
+                <h1>Leaflet testiranje</h1>
+            </div>            
+        </div>
+        <div class="row">
+        </div>
+        <div class="row">
+            <div class="col-md-2">
+                <div class="form-group">
+                            <label for="vrijednost">Vrijednost za pretra&#382;ivanje:</label>
+                            <input type="text" class="form-control" id="addr" name="addr" />
+                        </div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary" id="btnPretraga" onclick="addr_search()">Pretraga</button>                    
+                </div>                
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary" id="btnLocate" onclick="locateMe()">Locate me</button>
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary" id="btnPrint" onclick="printMapu()">Print me</button>
+                </div>                
+                    <div id="info"></div>
+                    <div id="layertree"></div>    
+                    <div id="name"></div>
+                    <div id="results"></div>
+            </div>
+            <div class="col-md-10">
+                    <div id="map" class="half-map" style="width: 1000px; height: 800px"></div>
+            </div>
+        </div>
+        
+<style>
+    div#search {
+  background-color: white;
+  position: absolute;
+  bottom: 240px;
+  left: 240px;
+  width: auto;
+  height: auto;
+  padding: 10px;
+  z-index: 0;
+}
+div#search input {
+  width: 200px;
+}
+div#results {
+  font-style: sans-serif;
+  color: black;
+  font-size: 75%;
+}
+</style>
+    
+    <link href='http://fonts.googleapis.com/css?family=Lato:900,300' rel='stylesheet' type='text/css'>
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+
+        <!--<script src="../assets/ol3/js/ol.js"></script>-->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/leaflet.css"/>
+        <!--<script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.2.0/build/ol.js"></script>-->
+        <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js'></script>
+        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/leaflet.js"></script>-->
+        <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
+        <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.43.0/L.Control.Locate.min.js'></script>
+        <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.43.0/L.Control.Locate.mapbox.css' rel='stylesheet' />
+        <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
+        <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
+        <!--Za mjerenje na ekranu-->
+        <link rel="stylesheet" href="css/Leaflet.PolylineMeasure.css">
+        <script src="js/Leaflet.PolylineMeasure.js"></script>
+        <!--Za mjerenje na ekranu-->
+        <link rel="stylesheet" href="css/leaflet-ruler.css">
+        <script src="js/leaflet-ruler.js"></script>        
+        <script>            
+            /*var map = L.map('map',{center: [35.10418, -106.62987],
+                zoom: 10
+            });
+            //var map = L.map('map').setView([35.10418, -106.62987],10);
+            L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);*/
+
+            var feature; //promjenljiva za geolokaciju
+
+
+var OpenStreetMap_BlackAndWhite = L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+	maxZoom: 18,
+	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+});
+var OpenTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+	maxZoom: 17,
+	attribution: 'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+});
+var Stamen_Toner = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}{r}.{ext}', {
+	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+	subdomains: 'abcd',
+	minZoom: 0,
+	maxZoom: 20,
+	ext: 'png'
+});
+var Esri_WorldStreetMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+});
+var Esri_DeLorme = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Specialty/DeLorme_World_Base_Map/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Copyright: &copy;2012 DeLorme',
+	minZoom: 1,
+	maxZoom: 11
+});
+var Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+});
+var Esri_WorldTopoMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+});
+var Esri_WorldShadedRelief = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Source: Esri',
+	maxZoom: 13
+});
+var MtbMap = L.tileLayer('http://tile.mtbmap.cz/mtbmap_tiles/{z}/{x}/{y}.png', {
+	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; USGS'
+});
+var NASAGIBS_ViirsEarthAtNight2012 = L.tileLayer('https://map1.vis.earthdata.nasa.gov/wmts-webmerc/VIIRS_CityLights_2012/default/{time}/{tilematrixset}{maxZoom}/{z}/{y}/{x}.{format}', {
+	attribution: 'Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (<a href="https://earthdata.nasa.gov">ESDIS</a>) with funding provided by NASA/HQ.',
+	bounds: [[-85.0511287776, -179.999999975], [85.0511287776, 179.999999975]],
+	minZoom: 1,
+	maxZoom: 8,
+	format: 'jpg',
+	time: '',
+	tilematrixset: 'GoogleMapsCompatible_Level'
+});
+var GeoportailFrance_ignMaps = L.tileLayer('https://wxs.ign.fr/{apikey}/geoportail/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE={style}&TILEMATRIXSET=PM&FORMAT={format}&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}', {
+	attribution: '<a target="_blank" href="https://www.geoportail.gouv.fr/">Geoportail France</a>',
+	bounds: [[-75, -180], [81, 180]],
+	minZoom: 2,
+	maxZoom: 18,
+	apikey: 'choisirgeoportail',
+	format: 'image/jpeg',
+	style: 'normal'
+});
+
+
+
+        var OsnovnaOpenStreet = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png'),
+            najbolja   = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'); //za lejere
+            var podgorica = L.marker([41.5, 19.5]).bindPopup('Podgorica'),
+                pljevlja    = L.marker([43, 20]).bindPopup('Pljevlja');                ;
+            var cities = L.layerGroup([podgorica, pljevlja]);
+            var baseMaps = {
+                "Osnovna": OsnovnaOpenStreet,
+                "OpenTopoMap": OpenTopoMap,
+                "Crnobijela": OpenStreetMap_BlackAndWhite,
+                "Stamen toner": Stamen_Toner,
+                "Esri_Street": Esri_WorldStreetMap,
+                "Esri_DeLorme": Esri_DeLorme,
+                "Esri_Sat": Esri_WorldImagery,
+                "Esri_Topo": Esri_WorldTopoMap,
+                "Esri_Reljef": Esri_WorldShadedRelief,
+                "MtbMap": MtbMap,
+                "NASA": NASAGIBS_ViirsEarthAtNight2012,
+                "France_Geoportal": GeoportailFrance_ignMaps
+            };
+            var overlayMaps = {
+                "Cities": cities
+            };
+
+
+            function initMap() {
+                var options = {center : new L.LatLng(42,21), zoom : 7 };
+                
+                var osmUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+                            osmAttribution = 'Map data &copy; 2012 OpenStreetMap contributors',
+                            osm = new L.TileLayer(osmUrl, {maxZoom: 18, attribution: osmAttribution});
+                
+                var mapLayer = new L.TileLayer(osmUrl);
+                
+                this.map = new L.Map('map', options).addLayer(mapLayer);
+                L.control.locate({
+                    position: 'topright',
+                    strings: {
+                        title: "Prikaži moju lokaciju"
+                    }
+                }).addTo(map);
+
+
+
+                L.control.fullscreen().addTo(map);
+
+            L.control.layers(baseMaps, overlayMaps).addTo(map);
+            var scale_bar = L.control.scale().addTo(map);
+            L.control.measureControl.addTo(map);
+            //L.control.watermark({ position: 'bottomright' }).addTo(map);
+            L.control.navbar().addTo(map);
+
+            }
+
+            //L.control.polylineMeasure ({position:'topleft', unit:'metres', showBearings:true, clearMeasurementsOnStop: false, showClearControl: true, showUnitControl: true}).addTo (map);
+            //L.control.ruler().addTo(map);
+
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function locateMe() {  
+    this.map.locate({setView : true});
+    await sleep(100);
+    L.marker(this.map.getCenter()).addTo(this.map)
+    //locateUser();
+}
+
+
+function locateUser() {
+    this.map.locate({setView : true});
+    setTimeout(L.marker(this.map.getCenter()).addTo(this.map), 1000)
+    //var myMarker = L.marker(this.map.getCenter()).addTo(this.map);
+}
+
+
+function chooseAddr(lat1, lng1, lat2, lng2, osm_type) {
+	var loc1 = new L.LatLng(lat1, lng1);
+	var loc2 = new L.LatLng(lat2, lng2);
+	var bounds = new L.LatLngBounds(loc1, loc2);
+
+	if (feature) {
+		map.removeLayer(feature);
+	}
+	if (osm_type == "node") {
+		feature = L.circle( loc1, 25, {color: 'green', fill: false}).addTo(map);
+		map.fitBounds(bounds);
+		map.setZoom(18);
+	} else {
+		var loc3 = new L.LatLng(lat1, lng2);
+		var loc4 = new L.LatLng(lat2, lng1);
+
+		feature = L.polyline( [loc1, loc4, loc2, loc3, loc1], {color: 'red'}).addTo(map);
+		map.fitBounds(bounds);
+	}
+}
+
+function addr_search() {
+    var inp = document.getElementById("addr");
+
+    $.getJSON('http://nominatim.openstreetmap.org/search?format=json&limit=5&q=' + inp.value, function(data) {
+        var items = [];
+
+        $.each(data, function(key, val) {
+            bb = val.boundingbox;
+            items.push("<li><a href='#' onclick='chooseAddr(" + bb[0] + ", " + bb[2] + ", " + bb[1] + ", " + bb[3]  + ", \"" + val.osm_type + "\");return false;'>" + val.display_name + '</a></li>');
+        });
+
+		$('#results').empty();
+        if (items.length != 0) {
+            $('<p>', { html: "Rezultati pretrage:" }).appendTo('#results');
+            $('<ul/>', {
+                'class': 'my-new-list',
+                html: items.join('')
+            }).appendTo('#results');
+        } else {
+            $('<p>', { html: "Nije nađen nijedan rezultat pretrage" }).appendTo('#results');
+        }
+    });
+}
+
+
+function printMapu() {
+    /*var printProvider = L.print.provider({
+    capabilities: printConfig,
+    url: "http://localhost:8080/geoserver/print",
+    method: 'POST',
+    autoLoad: true,
+    dpi: 150,
+
+    legends: true,
+    geodetic:true,
+    outputFormat: 'pdf'
+    });*/
+
+               /* var printProvider = L.print.provider({
+                    method: 'GET',
+                    url: 'http://localhost:8080/geoserver/print',
+                    autoLoad: true,
+                    dpi: 90
+                });
+
+                var printControl = L.control.print({
+                provider: printProvider
+                });        
+                map.addControl(printControl);
+
+
+                var printer = L.easyPrint({
+                    tileLayer: tiles,
+                    sizeModes: ['Current', 'A4Landscape', 'A4Portrait'],
+                    filename: 'myMap',
+                    exportOnly: true,
+                    hideControlContainer: true
+                }).addTo(map);*/
+}
+
+var map = null;
+
+initMap();
+
+
+
+        </script>
+    </body>
+</html>
