@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+  <head>
+    <title>WMS GetFeatureInfo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
+    <style type="text/css">
+      html, body, #map {
+        margin: 0px;
+        height: 100%;
+        width: 100%;
+      }
+/* Change cursor when mousing over clickable layer */
+/*.leaflet-clickable {
+  cursor: crosshair !important;
+}*/
+/* Change cursor when over entire map */
+/*.leaflet-container {
+  cursor: help !important;
+}*/
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <form action='#' onsubmit="return false;">
+      <input type='file' id='fileinput'>
+      <input type='button' id='btnLoad' value='Load' onclick='loadFile();'>
+  </form> 
+    
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="js/L.TileLayer.BetterWMS.js"></script>
+    <link rel="stylesheet" href="css/font-awesome.min.css"/>
+    <script>
+      var map = L.map('map', {
+        center: [42,20],
+        zoom: 7
+      });
+      
+      //var url = 'http://localhost/geoserver/winsoft/wms';
+      var url = 'http://localhost/geoserver/wms';
+      
+      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
+      
+      var wms = L.tileLayer.betterWms(url, {
+        layers: 'winsoft:svetiljke',
+        transparent: true,
+        format: 'image/png'
+      }).addTo(map);
+      wms.getContainer().setAttribute('id', 'wmsContainer');
+
+      var bare = L.tileLayer.betterWms(url, {
+        layers: 'winsoft:bare',
+        transparent: true,
+        cql_filter : "broj >= 10000",
+        format: 'image/png'
+      }).addTo(map);
+
+    </script>  
+  </body>
+</html>

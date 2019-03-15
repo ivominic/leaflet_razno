@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+  <head>
+    <title>WMS Upload KML</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
+    <style type="text/css">
+      html, body, #map {
+        margin: 0px;
+        height: 100%;
+        width: 100%;
+      }
+/* Change cursor when mousing over clickable layer */
+/*.leaflet-clickable {
+  cursor: crosshair !important;
+}*/
+/* Change cursor when over entire map */
+/*.leaflet-container {
+  cursor: help !important;
+}*/
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <form action='#' onsubmit="return false;">
+      <input type='file' id='fileinput'>
+      <input type='button' id='btnLoad' value='Load' onclick='loadFile();'>
+  </form> 
+    <script src="js/leaflet.filelayer.js"></script>    
+    <script src="js/togeojson.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="js/L.TileLayer.BetterWMS.js"></script>
+    <script src="js/KML.js"></script>
+    <link rel="stylesheet" href="css/font-awesome.min.css"/>
+
+
+    <script>
+      var map = L.map('map', {
+        center: [42,20],
+        zoom: 7
+      });
+      
+      //var url = 'http://localhost/geoserver/winsoft/wms';
+      var url = 'http://localhost/geoserver/wms';
+      
+      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
+      
+      var wms = L.tileLayer.betterWms(url, {
+        layers: 'winsoft:svetiljke',
+        transparent: true,
+        format: 'image/png'
+      }).addTo(map);
+      wms.getContainer().setAttribute('id', 'wmsContainer');
+
+      var bare = L.tileLayer.betterWms(url, {
+        layers: 'winsoft:bare',
+        transparent: true,
+        format: 'image/png'
+      }).addTo(map);
+
+      
+
+
+
+/*
+      function loadFile() {
+
+        input = document.getElementById('fileinput');
+        if (!input.files[0]) {
+          bodyAppend("p", "Please select a file before clicking 'Load'");
+        }else {
+          file = input.files[0];
+          var shpfile = new L.KML(file);
+          shpfile.addTo(map);
+          //fr = new FileReader();
+          //fr.onload = receiveBinary;
+          //fr.readAsArrayBuffer(file);
+        }
+
+      function receiveBinary() {
+        result = fr.result
+        //var shpfile = new L.Shapefile(result);
+        //shpfile.addTo(mymap);
+        //var shpfile = new L.KML(result);
+        //shpfile.addTo(map);
+      }
+    }
+*/
+
+/*var style = {color:'red', opacity: 1.0, fillOpacity: 1.0, weight: 2, clickable: false};
+console.log(L);
+        //L.Control.FileLayerLoad.LABEL = '<i class="fa fa-folder-open"></i>';
+        L.Control.FileLayerLoad({
+            fitBounds: true,
+            layerOptions: {style: style,
+                           pointToLayer: function (data, latlng) {
+                              return L.circleMarker(latlng, {style: style});
+                           }},
+        }).addTo(map);*/
+
+        L.Control.fileLayerLoad({
+  layerOptions: {
+    style: {
+      color:'red',
+      opacity: 0.8
+    }
+  }}).addTo(map);
+
+
+    /*var kmlLayer = new L.KML("novi_r6_Ivanje_10kV.kml", {async: true});
+                                                              
+    kmlLayer.on("loaded", function(e) { 
+        map.fitBounds(e.target.getBounds());
+    });
+    kmlLayer.addTo(map);*/
+    
+
+
+    </script>  
+  </body>
+</html>
