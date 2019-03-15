@@ -5,6 +5,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/leaflet-sidebar.css" />
+    <script src="js/leaflet-sidebar.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="js/L.TileLayer.BetterWMS.js"></script>
+    <link rel="stylesheet" href="css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <style type="text/css">
       html, body, #map {
         margin: 0px;
@@ -19,18 +26,81 @@
 /*.leaflet-container {
   cursor: help !important;
 }*/
+body {
+            padding: 0;
+            margin: 0;
+        }
+
+        html, body, #map {
+            height: 100%;
+            font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
+        }
+
+        .lorem {
+            font-style: italic;
+            text-align: justify;
+            color: #AAA;
+      }
     </style>
   </head>
   <body>
     <div id="map"></div>
-    <form action='#' onsubmit="return false;">
-      <input type='file' id='fileinput'>
-      <input type='button' id='btnLoad' value='Load' onclick='loadFile();'>
-  </form> 
+
+        <!-- optionally define the sidebar content via HTML markup -->
+        <div id="sidebar" class="leaflet-sidebar collapsed">
+
+          <!-- nav tabs -->
+          <div class="leaflet-sidebar-tabs">
+              <!-- top aligned tabs -->
+              <ul role="tablist">
+                  <li><a href="#home" role="tab"><i class="fa fa-bars active"></i></a></li>                  
+              </ul>
+          </div>
+  
+          <!-- panel content -->
+          <div class="leaflet-sidebar-content">
+              <div class="leaflet-sidebar-pane" id="home">
+                  <h1 class="leaflet-sidebar-header">
+                      Pretraga
+                      <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span>
+                  </h1>
+
+                  <div>
+                    <label for="lejerPretraga">Odaberite lejer za pretragu:</label>
+                    <select class="form-control" id="lejerPretraga">
+                        <option value="bare">Bare</option>
+                        <option value="bioce">Bioče</option>
+                        <option value="bjelosevina">Bjeloševina</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="atribut">Odaberite atribut pretrage:</label>
+                    <select class="form-control" id="atribut">
+                        <option value="name">Name</option>
+                        <option value="description">Description</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="vrijednost">Vrijednost za pretra&#382;ivanje:</label>
+                    <input type="text" class="form-control" id="vrijednost">
+                  </div>
+                  <div class="form-group">
+                    <button type="button" class="btn btn-primary" id="btnPretraga" onclick="pretraga()">Pretraga</button>
+                    <!--<button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">Restart</button>-->
+                  </div>                    
+  
+              </div>
+  
+              <div class="leaflet-sidebar-pane" id="messages">
+                  <h1 class="leaflet-sidebar-header">Messages<span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+              </div>
+          </div>
+      </div>
+  
+
     
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-    <script src="js/L.TileLayer.BetterWMS.js"></script>
-    <link rel="stylesheet" href="css/font-awesome.min.css"/>
+
     <script>
       var map = L.map('map', {
         center: [42,20],
@@ -52,9 +122,30 @@
       var bare = L.tileLayer.betterWms(url, {
         layers: 'winsoft:bare',
         transparent: true,
-        cql_filter : "broj >= 10000",
+        //cql_filter : "broj >= 10000",
         format: 'image/png'
       }).addTo(map);
+
+      // create the sidebar instance and add it to the map
+      var sidebar = L.control.sidebar({ container: 'sidebar' }).addTo(map);
+
+function pretraga(){
+    var katastarskaOpstina = $("#katastar option:selected").val();
+    var atributPretrage = $("#atribut option:selected").val();
+    var vrijednostPretrage = $("#vrijednost").val();
+      if(vrijednostPretrage.trim() === ''){
+        alert('Potrebno je unijeti vrijednost za pretragu.');
+        return false
+      }
+
+      bare.setParams({cql_filter : "broj >= 10000"});
+
+
+      console.log(bare.options);
+
+}
+
+console.log(map._layers.wmsParams);
 
     </script>  
   </body>

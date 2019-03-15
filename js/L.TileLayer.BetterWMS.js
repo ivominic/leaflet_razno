@@ -52,9 +52,9 @@ L.TileLayer.BetterWMS = L.TileLayer.WMS.extend({
 			feature_count: '5',
             layers: this.wmsParams.layers,
             query_layers: this.wmsParams.layers,			
-			info_format: 'text/zxczxjavascript'
+			//info_format: 'text/javascript'
 			//info_format: 'application/json'
-            //info_format: 'text/html'
+            info_format: 'text/html'
           };
       
       params[params.version === '1.3.0' ? 'i' : 'x'] = point.x;

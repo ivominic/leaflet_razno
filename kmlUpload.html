@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>WMS Upload KML</title>
+    <title>Upload KML</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
@@ -30,7 +30,6 @@
     <script src="js/leaflet.filelayer.js"></script>    
     <script src="js/togeojson.js"></script>
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-    <script src="js/L.TileLayer.BetterWMS.js"></script>
     <script src="js/KML.js"></script>
     <link rel="stylesheet" href="css/font-awesome.min.css"/>
 
@@ -45,19 +44,7 @@
       var url = 'http://localhost/geoserver/wms';
       
       L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
-      
-      var wms = L.tileLayer.betterWms(url, {
-        layers: 'winsoft:svetiljke',
-        transparent: true,
-        format: 'image/png'
-      }).addTo(map);
-      wms.getContainer().setAttribute('id', 'wmsContainer');
-
-      var bare = L.tileLayer.betterWms(url, {
-        layers: 'winsoft:bare',
-        transparent: true,
-        format: 'image/png'
-      }).addTo(map);
+    
 
       
 
@@ -100,12 +87,13 @@ console.log(L);
         }).addTo(map);*/
 
         L.Control.fileLayerLoad({
-  layerOptions: {
-    style: {
-      color:'red',
-      opacity: 0.8
-    }
-  }}).addTo(map);
+          layerOptions: {
+            style: {
+              color:'red',
+              opacity: 0.8
+            }
+          }
+        }).addTo(map);
 
 
     /*var kmlLayer = new L.KML("novi_r6_Ivanje_10kV.kml", {async: true});

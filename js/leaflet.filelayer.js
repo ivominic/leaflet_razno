@@ -63,15 +63,30 @@ var FileLoader = L.Class.extend({
         if (typeof content == 'string') {
             content = JSON.parse(content);
         }
-        var layer = L.geoJson(content, this.options.layerOptions);
+        //var layer = L.geoJson(content, this.options.layerOptions);
+        var layer = L.geoJson(content, {style: {
+            color:'red',
+            opacity: 0.8
+          },
+            onEachFeature: function (feature, layer) {            
+              layer.bindPopup('<h1>'+feature.properties.name+'</h1><p>'+feature.properties.description+'</p>');
+            }});
+        /*layer.on({
+            click: function(e) {
+                console.log(e.sourceTarget.feature.properties.name);
+                alert(e.sourceTarget.feature.properties.name);      
+              L.DomEvent.stopPropagation(e); // stop click event from being propagated further
+            }
+        });*/
 
         if (layer.getLayers().length === 0) {
             throw new Error('GeoJSON has no valid layers.');
         }
 
-        if (this.options.addToMap) {
+        if (this.options.addToMap) {                       
             layer.addTo(this._map);
-        }
+        }        
+
         return layer;
     },
 
@@ -88,7 +103,7 @@ var FileLoader = L.Class.extend({
 
 L.Control.FileLayerLoad = L.Control.extend({
     statics: {
-        TITLE: 'Load local file (GPX, KML, GeoJSON)',
+        TITLE: 'Učitavanje fajlova (GPX, KML, GeoJSON)',
         LABEL: '&#8965;'
     },
     options: {
@@ -96,7 +111,7 @@ L.Control.FileLayerLoad = L.Control.extend({
         fitBounds: true,
         layerOptions: {},
         addToMap: true,
-        fileSizeLimit: 1024
+        fileSizeLimit: 10240
     },
 
     initialize: function (options) {
@@ -197,3 +212,40 @@ L.Control.FileLayerLoad = L.Control.extend({
 L.Control.fileLayerLoad = function (options) {
     return new L.Control.FileLayerLoad(options);
 };
+
+    // handle click events on garden features
+    function gardenOnEachFeature(feature, layer){
+        layer.on({
+          click: function(e) {
+            if (selection) {            
+              resetStyles();
+            }
+                    
+            e.target.setStyle(gardenSelectedStyle());
+            selection = e.target;
+            selectedLayer = gardenLayer;
+      
+            // Insert some HTML with the feature name
+            buildSummaryLabel(feature);
+      
+            L.DomEvent.stopPropagation(e); // stop click event from being propagated further
+          }
+        });
+    }
+
+// define the styles for the garden layer (unselected and selected)
+function gardenStyle(feature) {
+    return {
+      fillColor: "#FF00FF",
+      fillOpacity: 1,
+      color: '#B04173',
+    };
+  }
+  
+  function gardenSelectedStyle(feature) {
+    return {
+      fillColor: "#00FFFB",
+      color: '#0000FF',
+      fillOpacity: 1
+    };
+  }
