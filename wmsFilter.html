@@ -3,7 +3,8 @@
   <head>
     <title>WMS GetFeatureInfo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
-    
+    <link href="css/multiselect.css" rel="stylesheet"/>
+    <script src="js/multiselect.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/leaflet-sidebar.css" />
@@ -66,11 +67,13 @@ body {
                   </h1>
 
                   <div>
-                    <label for="lejerPretraga">Odaberite lejer za pretragu:</label>
-                    <select class="form-control" id="lejerPretraga">
-                        <option value="bare">Bare</option>
-                        <option value="bioce">Bioče</option>
-                        <option value="bjelosevina">Bjeloševina</option>
+                    <label for="opstina">Odaberite opštinu:</label>
+                    <select class="form-control" id="opstina" multiple>
+                        <option value="Andrijevica">Andrijevica</option>
+                        <option value="Bar">Bar</option>
+                        <option value="Budva">Budva</option>
+                        <option value="Cetinje">Cetinje</option>
+                        <option value="Podgorica">Podgorica</option>
                     </select>
                   </div>
 
@@ -107,17 +110,19 @@ body {
         zoom: 7
       });
       
+      document.multiselect('#opstina');
+
       //var url = 'http://localhost/geoserver/winsoft/wms';
       var url = 'http://localhost/geoserver/wms';
       
-      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
+      var osmLayer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
       
-      var wms = L.tileLayer.betterWms(url, {
+      var svetiljke = L.tileLayer.betterWms(url, {
         layers: 'winsoft:svetiljke',
         transparent: true,
         format: 'image/png'
       }).addTo(map);
-      wms.getContainer().setAttribute('id', 'wmsContainer');
+      svetiljke.getContainer().setAttribute('id', 'wmsContainer');
 
       var bare = L.tileLayer.betterWms(url, {
         layers: 'winsoft:bare',
@@ -126,22 +131,92 @@ body {
         format: 'image/png'
       }).addTo(map);
 
+      var baseMaps = {
+        "OSM": osmLayer
+      };
+      var wmsLayers = {
+        "Svetiljke": svetiljke,
+        "Bare": bare
+      };
+
+      var lejeriZaFiltriranje = wmsLayers;
+
+
+      L.Control.Layers.include({
+  getOverlays: function() {
+    // create hash to hold all layers
+    var control, layers;
+    layers = {};
+    control = this;
+
+    // loop thru all layers in control
+    control._layers.forEach(function(obj) {
+      var layerName;
+
+      // check if layer is an overlay
+      if (obj.overlay) {
+        // get name of overlay
+        layerName = obj.name;
+        // store whether it's present on the map or not
+        return layers[layerName] = control._map.hasLayer(obj.layer);
+      }
+    });
+
+    return layers;
+  }
+});
+
       // create the sidebar instance and add it to the map
       var sidebar = L.control.sidebar({ container: 'sidebar' }).addTo(map);
+      var lejeri = L.control.layers(baseMaps, wmsLayers).addTo(map);
+
+      map.on('overlayadd', function(e){
+        console.log('dodao lejer');
+        console.log(e);        
+      });
+      map.on('overlayremove', function(e){
+        console.log('uklonio lejer');
+        console.log(e);
+      });
 
 function pretraga(){
-    var katastarskaOpstina = $("#katastar option:selected").val();
+
+  if($("#opstina option:selected").size() === $("#opstina option").size()){
+    console.log('Sve je selektovano');
+  }else{
+    console.log('Selektovane pojedine opštine');
+    //TODO: Kreirati upit za određene opštine
+    $.each($("#opstina option:selected"), function(){            
+      console.log($(this).val());
+    });
+  }
+  //console.log(lejeri.getOverlays());
+
+  lejeri._layers.forEach(function(obj) {
+      if (obj.overlay) {
+        //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
+        if(lejeri._map.hasLayer(obj.layer)){
+          console.log(obj);
+          obj.layer.setParams({cql_filter : "broj >= 10000 or broj < 2500"});
+          console.log('aktivan')
+        }else{
+          console.log(obj.name);
+          console.log('neaktivan');
+        }
+      }
+    });
+
     var atributPretrage = $("#atribut option:selected").val();
     var vrijednostPretrage = $("#vrijednost").val();
-      if(vrijednostPretrage.trim() === ''){
+      /*if(vrijednostPretrage.trim() === ''){
         alert('Potrebno je unijeti vrijednost za pretragu.');
         return false
-      }
+      }*/
 
-      bare.setParams({cql_filter : "broj >= 10000"});
+     // bare.setParams({cql_filter : "broj >= 10000"});
 
 
-      console.log(bare.options);
+      //console.log(bare.options);
 
 }
 

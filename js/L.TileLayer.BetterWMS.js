@@ -47,6 +47,7 @@ L.TileLayer.BetterWMS = L.TileLayer.WMS.extend({
             version: this.wmsParams.version,      
             format: this.wmsParams.format,
             bbox: this._map.getBounds().toBBoxString(),
+            cql_filter: this.wmsParams.cql_filter,//Bitno da ne bi prikazao podatke klikom na lokaciju za koju je sakriven objekat
             height: size.y,
             width: size.x,
 			feature_count: '5',
