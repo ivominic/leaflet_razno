@@ -162,10 +162,6 @@
         console.log(e);
       });
 
-      /*$('opstina').on('change', function() {
-        console.log( this.value );
-      });*/
-
       function dodajAtribut(){
         var atribut = $("#atribut option:selected").val();
         var vrijednost = $("#vrijednost").val();
@@ -196,6 +192,12 @@
   
 
       function pretraga(){
+        if($("#opstina option:selected").size() === 0 || $("#naponskiNivo option:selected").size() === 0){
+          alert('Potrebno je odabrati bar jednu opštinu i naponski nivo');
+          return false;
+        }
+
+        //console.log($("#opstina option:selected").size());
 
         var temp_opstina = "";
         if($("#opstina option:selected").size() === $("#opstina option").size()){
@@ -215,41 +217,32 @@
           }
 
           }).promise().done(function () { 
-
-          });    
-        }
-
-        //console.log(lejeri.getOverlays());
-        if($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()){
-          //Ako je sve selektovano ne radi se ništa
-        }else{
-          var temp_nivo = "";
-          $.each($("#naponskiNivo option:selected"), function(){            
-            temp_nivo += "'" + $(this).val() + "',"
-          });
-          if(temp_nivo !== ""){
-            //Uklanja poslednji zarez
-            temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1);
-            if(cql_text === ""){
-              cql_text = "v_napon IN (" + temp_nivo + ")"
+            //console.log(lejeri.getOverlays());
+            if($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()){
+              //Ako je sve selektovano ne radi se ništa
             }else{
-              cql_text += " AND v_napon IN (" + temp_nivo + ")"
+              var temp_nivo = "";
+              $.each($("#naponskiNivo option:selected"), function(){            
+                temp_nivo += "'" + $(this).val() + "',"
+              });
+              if(temp_nivo !== ""){
+                //Uklanja poslednji zarez
+                temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1);
+                if(cql_text === ""){
+                  cql_text = "v_napon IN (" + temp_nivo + ")"
+                }else{
+                  cql_text += " AND v_napon IN (" + temp_nivo + ")"
+                }
+              }
             }
-          }
-        }
-
-
-        lejeri._layers.forEach(function(obj) {
+          }).promise().done(function () { 
+            lejeri._layers.forEach(function(obj) {
             if (obj.overlay) {
               //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
               if(lejeri._map.hasLayer(obj.layer)){
-                //console.log(obj);
-                console.log(cql_text);
                 if(cql_text !== ""){
                   obj.layer.setParams({cql_filter : cql_text});
                   //obj.layer.setParams({cql_filter : "name LIKE '%MB%'"});
-                  //console.log('Filtriranje');
-                  console.log(cql_text);
                 }else{
                   //console.log('Prazan filter');
                 }
@@ -258,12 +251,10 @@
               }
             }
           });
-          // jezero.setParams({cql_filter : "broj >= 10000"});
-            //console.log(jezero.options);
 
+          });    
+        }       
       }
-
-//console.log(map._layers.wmsParams);
 
     </script>  
   </body>
