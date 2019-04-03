@@ -13,6 +13,7 @@
     <script src="js/L.TileLayer.BetterWMS.js"></script>
     <link rel="stylesheet" href="css/font-awesome.min.css"/>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="js/leaflet-hash.js"></script>
     <style type="text/css">
       html, body, #map {
         margin: 0px;
@@ -147,6 +148,15 @@
       };
 
       var lejeriZaFiltriranje = wmsLayers;
+      var atribut_text = "";
+      var temp_opstina = "";
+      var temp_nivo = "";      
+
+      
+      //Hash link
+      var hash = new L.Hash(map);
+
+      pocetniFilter();
     
 
       // create the sidebar instance and add it to the map
@@ -169,40 +179,66 @@
         if(vrijednost.trim() === '' || typeof vrijednost === undefined){
           alert('Potrebno je unijeti vrijednost atributa');
         }else{
-          if(cql_text === ""){
-            cql_text = atribut + " LIKE '%" + vrijednost + "%'"
+          if(atribut_text === ""){
+            atribut_text = atribut + " LIKE '%" + vrijednost + "%'"
           }else{
-            cql_text += " AND " + atribut + " LIKE '%" + vrijednost + "%'"
+            atribut_text += " AND " + atribut + " LIKE '%" + vrijednost + "%'"
           }          
         }
       }
 
+      function pocetniFilter(){
+        var url = new URL(location.href);
+        console.log(url);
+        //alert(unescape(decodeURI(url.href)));
+        var cql_param = url.searchParams.get('cql_param');
+        if(cql_param){
+          console.log(cql_param);
+        }
+        var active_layers = url.searchParams.get('active_layers');
+        if(active_layers){
+          console.log(active_layers);
+        }
+        //Klik na lejere koje treba isključiti
+        //Predati redne brojeve isključenih lejera
+        //$('.leaflet-control-layers-selector')[brojac].click();
+      }
+
       function restartovanje(){
-        lejeri._layers.forEach(function(obj) {
+        atribut_text = "";
+        lejeri._layers.forEach(function(obj) {          
           if (obj.overlay) {
+            console.log(obj);
             //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
             if(lejeri._map.hasLayer(obj.layer)){              
               obj.layer.setParams({cql_filter: 'INCLUDE'}); //'INCLUDE' vrijednost u cql_filteru vrši neku vrstu reseta
-              cql_text = "";
               //console.log(obj.layer.wmsParams);
             }
           }
         });
+
+        //location.href.append('asdasdasdasdasd',12323)
+        //location.href = url;
       }
   
 
       function pretraga(){
+
+        temp_opstina = "";
+        temp_nivo = "";
+        //atribut_text = "";
+        cql_text = "";
+
         if($("#opstina option:selected").size() === 0 || $("#naponskiNivo option:selected").size() === 0){
           alert('Potrebno je odabrati bar jednu opštinu i naponski nivo');
           return false;
         }
 
         //console.log($("#opstina option:selected").size());
-
-        var temp_opstina = "";
+        temp_opstina = "";
         if($("#opstina option:selected").size() === $("#opstina option").size()){
           //Ako je sve selektovano ne radi se ništa
-        }else{        
+        }else{
           $.each($("#opstina option:selected"), function(){
             temp_opstina += "'" + $(this).val() + "',"
           }).promise().done(function () { 
@@ -218,10 +254,10 @@
 
           }).promise().done(function () { 
             //console.log(lejeri.getOverlays());
+            temp_nivo = "";
             if($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()){
               //Ako je sve selektovano ne radi se ništa
-            }else{
-              var temp_nivo = "";
+            }else{              
               $.each($("#naponskiNivo option:selected"), function(){            
                 temp_nivo += "'" + $(this).val() + "',"
               });
@@ -236,6 +272,19 @@
               }
             }
           }).promise().done(function () { 
+            if(cql_text === ""){
+              cql_text = atribut_text
+            }else{
+              cql_text += " AND " + atribut_text
+            }
+            //TODO: Dodati još u url-u parametre pretage
+            var url = new URL(location.href);
+            url.searchParams.append('cql_param', encodeURIComponent(cql_text));
+            location.href = url.href;
+            console.log(url);
+            console.log(url.searchParams.get('cql_param'));
+
+
             lejeri._layers.forEach(function(obj) {
             if (obj.overlay) {
               //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
@@ -253,7 +302,7 @@
           });
 
           });    
-        }       
+        }
       }
 
     </script>  
