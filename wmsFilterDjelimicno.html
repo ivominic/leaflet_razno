@@ -1,0 +1,339 @@
+<!doctype html>
+<html>
+  <head>
+    <title>WMS GetFeatureInfo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
+    <link href="css/multiselect.css" rel="stylesheet"/>
+    <script src="js/multiselect.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/leaflet-sidebar.css" />
+    <script src="js/leaflet-sidebar.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="js/L.TileLayer.BetterWMS.js"></script>
+    <link rel="stylesheet" href="css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="js/leaflet-hash.js"></script>
+    <style type="text/css">
+      html, body, #map {
+        margin: 0px;
+        height: 100%;
+        width: 100%;
+        font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
+      }
+/* Change cursor when mousing over clickable layer */
+/*.leaflet-clickable {
+  cursor: crosshair !important;
+}*/
+/* Change cursor when over entire map */
+/*.leaflet-container {
+  cursor: help !important;
+}*/
+      body {
+        padding: 0;
+        margin: 0;
+      }
+
+
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+        <!-- optionally define the sidebar content via HTML markup -->
+        <div id="sidebar" class="leaflet-sidebar collapsed">
+
+          <!-- nav tabs -->
+          <div class="leaflet-sidebar-tabs">
+              <!-- top aligned tabs -->
+              <ul role="tablist">
+                  <li><a href="#home" role="tab"><i class="fa fa-bars active"></i></a></li>                  
+              </ul>
+          </div>
+  
+          <!-- panel content -->
+          <div class="leaflet-sidebar-content">
+              <div class="leaflet-sidebar-pane" id="home">
+                  <h1 class="leaflet-sidebar-header">
+                      Pretraga
+                      <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span>
+                  </h1>
+
+                  <div>
+                    <label for="opstina">Odaberite opštinu:</label></br>
+                    <select class="form-control" id="opstina" multiple>
+                        <option value="Andrijevica">Andrijevica</option>
+                        <option value="Bar">Bar</option>
+                        <option value="Budva">Budva</option>
+                        <option value="Cetinje">Cetinje</option>
+                        <option value="Podgorica">Podgorica</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label for="naponskiNivo">Odaberite naponski nivo:</label></br>
+                    <select class="form-control" id="naponskiNivo" multiple>
+                        <option value="0.4 kV">0.4 kv</option>
+                        <option value="10 kV">10 kv</option>
+                        <option value="35 kV">35 kv</option>
+                        <option value="Optika">Optika</option>
+                        <option value="ADSS">ADSS</option>
+                        <option value="OPGW">OPGW</option>
+                    </select>
+                  </div>                  
+
+                  <div class="form-group">
+                    <label for="atribut">Odaberite atribut pretrage:</label>
+                    <select class="form-control" id="atribut">
+                        <option value="name">Name</option>
+                        <option value="description">Description</option>                        
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="vrijednost">Vrijednost za pretra&#382;ivanje:</label>
+                    <input type="text" class="form-control" id="vrijednost">
+                  </div>
+                  <div class="form-group">
+                      <button type="button" class="btn btn-primary" id="btnAtribut" onclick="dodajAtribut()">Dodaj uslov</button>
+                    <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">Pretraga</button>
+                    <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">Restart</button>
+                  </div>                    
+  
+              </div>
+  
+              <div class="leaflet-sidebar-pane" id="messages">
+                  <h1 class="leaflet-sidebar-header">Messages<span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+              </div>
+          </div>
+      </div>
+  
+
+    
+
+    <script>
+      var map = L.map('map', {
+        center: [42,20],
+        zoom: 7
+      });
+
+      var cql_text = "";
+      
+      document.multiselect('#opstina');
+      document.multiselect('#naponskiNivo');
+
+      //var url = 'http://localhost/geoserver/winsoft/wms';
+      var url = 'http://localhost/geoserver/wms';
+      
+      var osmLayer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
+      
+      var planinica = L.tileLayer.betterWms(url, {
+        layers: 'winsoft:planinica',
+        transparent: true,
+        format: 'image/png'
+      }).addTo(map);
+      planinica.getContainer().setAttribute('id', 'wmsContainer');
+
+      var jezero = L.tileLayer.betterWms(url, {
+        layers: 'winsoft:jezero',
+        transparent: true,
+        format: 'image/png'
+      }).addTo(map);
+
+      var baseMaps = {
+        "OSM": osmLayer
+      };
+      var wmsLayers = {
+        "Planinica": planinica,
+        "Jezero": jezero
+      };
+
+      var lejeriZaFiltriranje = wmsLayers;
+      var atribut_text = "";
+      var temp_opstina = "";
+      var temp_nivo = "";      
+
+      
+      //Hash link
+      var hash = new L.Hash(map);
+    
+
+      // create the sidebar instance and add it to the map
+      var sidebar = L.control.sidebar({ container: 'sidebar' }).addTo(map);
+      var lejeri = L.control.layers(baseMaps, wmsLayers).addTo(map);
+
+      map.on('overlayadd', function(e){
+        console.log('dodao lejer');
+        console.log(e);        
+      });
+      map.on('overlayremove', function(e){
+        console.log('uklonio lejer');
+        console.log(e);
+      });
+
+      pocetniFilter();
+
+      function dodajAtribut(){
+        var atribut = $("#atribut option:selected").val();
+        var vrijednost = $("#vrijednost").val();
+
+        if(vrijednost.trim() === '' || typeof vrijednost === undefined){
+          alert('Potrebno je unijeti vrijednost atributa');
+        }else{
+          if(atribut_text === ""){
+            //atribut_text = atribut + " LIKE '%" + vrijednost + "%'"
+            atribut_text = atribut + " = '" + vrijednost + "'"
+          }else{
+            atribut_text += " AND " + atribut + " = '" + vrijednost + "'"
+          }          
+        }
+      }
+
+      function pocetniFilter(){
+        var url = new URL(location.href);
+        console.log(url);
+        //alert(unescape(decodeURI(url.href)));
+        var cql_param = unescape(decodeURI(url.searchParams.get('cql_param')));     
+        console.log(cql_param);   
+        if(cql_param.length > 5){
+          alert(cql_param);
+          lejeri._layers.forEach(function(obj) {          
+            if (obj.overlay) {
+              if(lejeri._map.hasLayer(obj.layer)){              
+                obj.layer.setParams({cql_filter: cql_param});                 
+              }
+            }
+          });          
+        }
+        var inactive_layers = unescape(decodeURI(url.searchParams.get('inactivel')));
+        console.log(inactive_layers);
+        //Klik na lejere koje treba isključiti
+        //Predati redne brojeve isključenih lejera
+        //$('.leaflet-control-layers-selector')[1].click();
+      }
+
+      function restartovanje(){
+        atribut_text = "";
+        lejeri._layers.forEach(function(obj) {          
+          if (obj.overlay) {
+            console.log(obj);
+            //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
+            if(lejeri._map.hasLayer(obj.layer)){              
+              obj.layer.setParams({cql_filter: 'INCLUDE'}); //'INCLUDE' vrijednost u cql_filteru vrši neku vrstu reseta
+              //console.log(obj.layer.wmsParams);
+            }
+          }
+        });
+
+        //location.href.append('asdasdasdasdasd',12323)
+        //location.href = url;
+      }
+  
+
+      function pretraga(){
+
+        temp_opstina = "";
+        temp_nivo = "";
+        //atribut_text = "";
+        var neaktivni_temp =""
+        cql_text = "";
+
+        if($("#opstina option:selected").size() === 0 || $("#naponskiNivo option:selected").size() === 0){
+          alert('Potrebno je odabrati bar jednu opštinu i naponski nivo');
+          return false;
+        }
+
+        //console.log($("#opstina option:selected").size());
+        temp_opstina = "";
+        /*if($("#opstina option:selected").size() === $("#opstina option").size()){
+          //Ako je sve selektovano ne radi se ništa
+        }else{*/
+          $.each($("#opstina option:selected"), function(){
+            temp_opstina += "'" + $(this).val() + "',"
+          }).promise().done(function () { 
+            if(temp_opstina !== ""){
+            //Uklanja poslednji zarez
+            temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1);
+            if(cql_text === ""){
+              cql_text = "v_opstina IN (" + temp_opstina + ")"
+            }else{
+              cql_text += " AND v_opstina IN (" + temp_opstina + ")"
+            }
+          }
+
+          }).promise().done(function () { 
+            //console.log(lejeri.getOverlays());
+            temp_nivo = "";
+            /*if($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()){
+              //Ako je sve selektovano ne radi se ništa
+            }else{*/              
+              $.each($("#naponskiNivo option:selected"), function(){            
+                temp_nivo += "'" + $(this).val() + "',"
+              });
+              if(temp_nivo !== ""){
+                //Uklanja poslednji zarez
+                temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1);
+                if(cql_text === ""){
+                  cql_text = "v_napon IN (" + temp_nivo + ")"
+                }else{
+                  cql_text += " AND v_napon IN (" + temp_nivo + ")"
+                }
+              }
+            /*}*/
+          }).promise().done(function () { 
+            if(cql_text === ""){
+              cql_text = atribut_text
+            }else{
+              cql_text += " AND " + atribut_text
+            }
+            alert(atribut_text);
+            alert(cql_text);
+            var brojac=0
+            lejeri._layers.forEach(function(obj) {
+              if (obj.overlay) {
+              //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
+                brojac++;
+                if(lejeri._map.hasLayer(obj.layer)){
+                  //Za aktivne ne raditi ništa
+                }else{
+                  //Za neaktivne unijeti podatke u niz
+                  neaktivni_temp += brojac.toString() + ','
+                }
+              }
+            });
+
+            if(neaktivni_temp !== ""){
+              //Uklanja poslednji zarez
+              neaktivni_temp = neaktivni_temp.substring(0, neaktivni_temp.length - 1);
+            }
+            //TODO: Dodati još u url-u parametre pretage
+            var url = new URL(location.href);
+            url.searchParams.append('cql_param', encodeURIComponent(cql_text));
+            url.searchParams.append('inactivel', encodeURIComponent(neaktivni_temp));
+            location.href = url.href;
+            console.log(url);
+            console.log(url.searchParams.get('cql_param'));
+
+
+            lejeri._layers.forEach(function(obj) {
+            if (obj.overlay) {
+              //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
+              if(lejeri._map.hasLayer(obj.layer)){
+                if(cql_text !== ""){
+                  obj.layer.setParams({cql_filter : cql_text});
+                  //obj.layer.setParams({cql_filter : "name LIKE '%MB%'"});
+                }else{
+                  //console.log('Prazan filter');
+                }
+              }else{
+                //Za neaktivne ne raditi ništa
+              }
+            }
+          });
+
+          });    
+        /*}*/
+      }
+
+    </script>  
+  </body>
+</html>
