@@ -162,14 +162,6 @@
       var lejeri = L.control.layers(baseMaps, wmsLayers).addTo(map);
       pocetniFilter();
 
-      /*map.on('overlayadd', function(e){
-        console.log('dodao lejer');
-        console.log(e);        
-      });
-      map.on('overlayremove', function(e){
-        console.log('uklonio lejer');
-        console.log(e);
-      });*/
 
       function dodajAtribut(){
         var atribut = $("#atribut option:selected").val();
@@ -222,9 +214,6 @@
             }
           }
         });
-
-        //location.href.append('asdasdasdasdasd',12323)
-        //location.href = url;
       }
   
 
@@ -262,8 +251,39 @@
             //console.log(lejeri.getOverlays());
             temp_nivo = "";
             if($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()){
-              //Ako je sve selektovano ne radi se ništa
-            }else{              
+              if(cql_text === ""){
+                cql_text = atribut_text
+              }else{
+                if(atribut_text !== ""){
+                  cql_text += " AND " + atribut_text
+                }              
+              }
+              var url = new URL(location.href);
+              url.searchParams.append('cql_param', encodeURIComponent(cql_text));            
+
+              var inactive_layers = ""
+              brojac = 0;
+
+              lejeri._layers.forEach(function(obj) {
+                if (obj.overlay) {
+                  brojac++;
+                  if(lejeri._map.hasLayer(obj.layer)){
+                    if(cql_text !== ""){
+                      obj.layer.setParams({cql_filter : cql_text});
+                    }
+                  }else{
+                    inactive_layers += brojac.toString() + ",";
+                  }
+                }
+              });
+
+              if(inactive_layers !== ""){
+                inactive_layers = inactive_layers.substring(0, inactive_layers.length - 1);
+              }
+              url.searchParams.append('inactive_layers', encodeURIComponent(inactive_layers));
+
+              location.href = url.href;
+            }else{
               $.each($("#naponskiNivo option:selected"), function(){            
                 temp_nivo += "'" + $(this).val() + "',"
               }).promise().done(function () { 
@@ -286,40 +306,33 @@
                 cql_text += " AND " + atribut_text
               }              
             }
-            //TODO: Dodati još u url-u parametre pretage
             var url = new URL(location.href);
             url.searchParams.append('cql_param', encodeURIComponent(cql_text));            
-            //console.log(url);
-            //console.log(url.searchParams.get('cql_param'));
 
             var inactive_layers = ""
             brojac = 0;
 
-
             lejeri._layers.forEach(function(obj) {
               if (obj.overlay) {
                 brojac++;
-                //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
                 if(lejeri._map.hasLayer(obj.layer)){
                   if(cql_text !== ""){
-                    obj.layer.setParams({cql_filter : cql_text});
-                    //obj.layer.setParams({cql_filter : "name LIKE '%MB%'"});
-                  }else{
-                    //console.log('Prazan filter');
+                    obj.layer.setParams({cql_filter : cql_text});                    
                   }
                 }else{
                   inactive_layers += brojac.toString() + ",";
                 }
               }
             });
-            alert("asdsad");
             if(inactive_layers !== ""){
               inactive_layers = inactive_layers.substring(0, inactive_layers.length - 1);
             }
             url.searchParams.append('inactive_layers', encodeURIComponent(inactive_layers));
             location.href = url.href;
-          });    
+          });  
+
         }
+
       }
 
     </script>  
