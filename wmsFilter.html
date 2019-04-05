@@ -150,7 +150,8 @@
       var lejeriZaFiltriranje = wmsLayers;
       var atribut_text = "";
       var temp_opstina = "";
-      var temp_nivo = "";      
+      var temp_nivo = "";
+      var brojac = 0;
 
       
       //Hash link
@@ -204,6 +205,10 @@
 
       function restartovanje(){
         atribut_text = "";
+        //TODO: clear search params iz location.href-a
+        var url = new URL(location.href);
+        url.searchParams.set('cql_param', "");
+        url.searchParams.set('inactive_layers', "");
         lejeri._layers.forEach(function(obj) {          
           if (obj.overlay) {
             console.log(obj);
@@ -214,6 +219,8 @@
             }
           }
         });
+
+        location.href = url.href
       }
   
 
@@ -232,7 +239,91 @@
         //console.log($("#opstina option:selected").size());
         temp_opstina = "";
         if($("#opstina option:selected").size() === $("#opstina option").size()){
-          //Ako je sve selektovano ne radi se ništa
+
+            temp_nivo = "";
+            if($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()){
+              if(cql_text === ""){
+                cql_text = atribut_text
+              }else{
+                if(atribut_text !== ""){
+                  cql_text += " AND " + atribut_text
+                }              
+              }
+              var url = new URL(location.href);
+              //url.searchParams.append('cql_param', encodeURIComponent(cql_text));
+              url.searchParams.set('cql_param', encodeURIComponent(cql_text));
+
+              var inactive_layers = "";
+              brojac = 0;
+
+              lejeri._layers.forEach(function(obj) {
+                if (obj.overlay) {
+                  brojac++;
+                  if(lejeri._map.hasLayer(obj.layer)){
+                    if(cql_text !== ""){
+                      obj.layer.setParams({cql_filter : cql_text});
+                    }
+                  }else{
+                    inactive_layers += brojac.toString() + ",";
+                  }
+                }
+              });
+
+              if(inactive_layers !== ""){
+                inactive_layers = inactive_layers.substring(0, inactive_layers.length - 1);
+              }
+              //url.searchParams.append('inactive_layers', encodeURIComponent(inactive_layers));
+              url.searchParams.set('inactive_layers', encodeURIComponent(inactive_layers));
+
+              location.href = url.href;
+            }else{
+              $.each($("#naponskiNivo option:selected"), function(){            
+                temp_nivo += "'" + $(this).val() + "',"
+              }).promise().done(function () { 
+                if(temp_nivo !== ""){
+                  //Uklanja poslednji zarez
+                  temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1);
+                  if(cql_text === ""){
+                    cql_text = "v_napon IN (" + temp_nivo + ")"
+                  }else{
+                    cql_text += " AND v_napon IN (" + temp_nivo + ")"
+                  }
+                }
+                if(cql_text === ""){
+              cql_text = atribut_text
+            }else{
+              if(atribut_text !== ""){
+                cql_text += " AND " + atribut_text
+              }              
+            }
+            var url = new URL(location.href);
+            //url.searchParams.append('cql_param', encodeURIComponent(cql_text));
+            url.searchParams.set('cql_param', encodeURIComponent(cql_text));
+
+            var inactive_layers = ""
+            brojac = 0;
+
+            lejeri._layers.forEach(function(obj) {
+              if (obj.overlay) {
+                brojac++;
+                if(lejeri._map.hasLayer(obj.layer)){
+                  if(cql_text !== ""){
+                    obj.layer.setParams({cql_filter : cql_text});                    
+                  }
+                }else{
+                  inactive_layers += brojac.toString() + ",";
+                }
+              }
+            });
+            if(inactive_layers !== ""){
+              inactive_layers = inactive_layers.substring(0, inactive_layers.length - 1);
+            }
+            //url.searchParams.append('inactive_layers', encodeURIComponent(inactive_layers));
+            url.searchParams.set('inactive_layers', encodeURIComponent(inactive_layers));
+            location.href = url.href;
+          });
+         }
+
         }else{
           $.each($("#opstina option:selected"), function(){
             temp_opstina += "'" + $(this).val() + "',"
@@ -259,7 +350,8 @@
                 }              
               }
               var url = new URL(location.href);
-              url.searchParams.append('cql_param', encodeURIComponent(cql_text));            
+              //url.searchParams.append('cql_param', encodeURIComponent(cql_text));
+              url.searchParams.set('cql_param', encodeURIComponent(cql_text));
 
               var inactive_layers = ""
               brojac = 0;
@@ -280,7 +372,8 @@
               if(inactive_layers !== ""){
                 inactive_layers = inactive_layers.substring(0, inactive_layers.length - 1);
               }
-              url.searchParams.append('inactive_layers', encodeURIComponent(inactive_layers));
+              //url.searchParams.append('inactive_layers', encodeURIComponent(inactive_layers));
+              url.searchParams.set('inactive_layers', encodeURIComponent(inactive_layers));
 
               location.href = url.href;
             }else{
@@ -307,7 +400,8 @@
               }              
             }
             var url = new URL(location.href);
-            url.searchParams.append('cql_param', encodeURIComponent(cql_text));            
+            //url.searchParams.append('cql_param', encodeURIComponent(cql_text));
+            url.searchParams.set('cql_param', encodeURIComponent(cql_text));
 
             var inactive_layers = ""
             brojac = 0;
@@ -327,7 +421,8 @@
             if(inactive_layers !== ""){
               inactive_layers = inactive_layers.substring(0, inactive_layers.length - 1);
             }
-            url.searchParams.append('inactive_layers', encodeURIComponent(inactive_layers));
+            //url.searchParams.append('inactive_layers', encodeURIComponent(inactive_layers));
+            url.searchParams.set('inactive_layers', encodeURIComponent(inactive_layers));
             location.href = url.href;
           });  
 
