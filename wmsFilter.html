@@ -154,14 +154,13 @@
 
       
       //Hash link
-      var hash = new L.Hash(map);
-
-      pocetniFilter();
+      var hash = new L.Hash(map);      
     
 
       // create the sidebar instance and add it to the map
       var sidebar = L.control.sidebar({ container: 'sidebar' }).addTo(map);
       var lejeri = L.control.layers(baseMaps, wmsLayers).addTo(map);
+      pocetniFilter();
 
       map.on('overlayadd', function(e){
         console.log('dodao lejer');
@@ -191,9 +190,15 @@
         var url = new URL(location.href);
         console.log(url);
         //alert(unescape(decodeURI(url.href)));
-        var cql_param = url.searchParams.get('cql_param');
-        if(cql_param){
-          console.log(cql_param);
+        var cql_param = unescape(decodeURI(url.searchParams.get('cql_param')));
+        if(cql_param.length > 5){
+          lejeri._layers.forEach(function(obj) {          
+            if (obj.overlay) {
+              if(lejeri._map.hasLayer(obj.layer)){              
+                obj.layer.setParams({cql_filter: cql_param});                 
+              }
+            }
+          });          
         }
         var active_layers = url.searchParams.get('active_layers');
         if(active_layers){
@@ -260,22 +265,25 @@
             }else{              
               $.each($("#naponskiNivo option:selected"), function(){            
                 temp_nivo += "'" + $(this).val() + "',"
-              });
-              if(temp_nivo !== ""){
-                //Uklanja poslednji zarez
-                temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1);
-                if(cql_text === ""){
-                  cql_text = "v_napon IN (" + temp_nivo + ")"
-                }else{
-                  cql_text += " AND v_napon IN (" + temp_nivo + ")"
+              }).promise().done(function () { 
+                if(temp_nivo !== ""){
+                  //Uklanja poslednji zarez
+                  temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1);
+                  if(cql_text === ""){
+                    cql_text = "v_napon IN (" + temp_nivo + ")"
+                  }else{
+                    cql_text += " AND v_napon IN (" + temp_nivo + ")"
+                  }
                 }
-              }
+              });
             }
           }).promise().done(function () { 
             if(cql_text === ""){
               cql_text = atribut_text
             }else{
-              cql_text += " AND " + atribut_text
+              if(atribut_text !== ""){
+                cql_text += " AND " + atribut_text
+              }              
             }
             //TODO: Dodati još u url-u parametre pretage
             var url = new URL(location.href);
