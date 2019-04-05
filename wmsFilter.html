@@ -162,14 +162,14 @@
       var lejeri = L.control.layers(baseMaps, wmsLayers).addTo(map);
       pocetniFilter();
 
-      map.on('overlayadd', function(e){
+      /*map.on('overlayadd', function(e){
         console.log('dodao lejer');
         console.log(e);        
       });
       map.on('overlayremove', function(e){
         console.log('uklonio lejer');
         console.log(e);
-      });
+      });*/
 
       function dodajAtribut(){
         var atribut = $("#atribut option:selected").val();
@@ -200,9 +200,10 @@
             }
           });          
         }
-        var active_layers = url.searchParams.get('active_layers');
-        if(active_layers){
-          console.log(active_layers);
+        var inactive_layers = url.searchParams.get('inactive_layers');
+        if(inactive_layers){
+          console.log("inactive");
+          console.log(inactive_layers);
         }
         //Klik na lejere koje treba isključiti
         //Predati redne brojeve isključenih lejera
@@ -287,28 +288,36 @@
             }
             //TODO: Dodati još u url-u parametre pretage
             var url = new URL(location.href);
-            url.searchParams.append('cql_param', encodeURIComponent(cql_text));
-            location.href = url.href;
-            console.log(url);
-            console.log(url.searchParams.get('cql_param'));
+            url.searchParams.append('cql_param', encodeURIComponent(cql_text));            
+            //console.log(url);
+            //console.log(url.searchParams.get('cql_param'));
+
+            var inactive_layers = ""
+            brojac = 0;
 
 
             lejeri._layers.forEach(function(obj) {
-            if (obj.overlay) {
-              //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
-              if(lejeri._map.hasLayer(obj.layer)){
-                if(cql_text !== ""){
-                  obj.layer.setParams({cql_filter : cql_text});
-                  //obj.layer.setParams({cql_filter : "name LIKE '%MB%'"});
+              if (obj.overlay) {
+                brojac++;
+                //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
+                if(lejeri._map.hasLayer(obj.layer)){
+                  if(cql_text !== ""){
+                    obj.layer.setParams({cql_filter : cql_text});
+                    //obj.layer.setParams({cql_filter : "name LIKE '%MB%'"});
+                  }else{
+                    //console.log('Prazan filter');
+                  }
                 }else{
-                  //console.log('Prazan filter');
+                  inactive_layers += brojac.toString() + ",";
                 }
-              }else{
-                //Za neaktivne ne raditi ništa
               }
+            });
+            alert("asdsad");
+            if(inactive_layers !== ""){
+              inactive_layers = inactive_layers.substring(0, inactive_layers.length - 1);
             }
-          });
-
+            url.searchParams.append('inactive_layers', encodeURIComponent(inactive_layers));
+            location.href = url.href;
           });    
         }
       }
