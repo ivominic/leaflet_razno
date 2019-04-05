@@ -182,7 +182,6 @@
       function pocetniFilter(){
         var url = new URL(location.href);
         console.log(url);
-        //alert(unescape(decodeURI(url.href)));
         var cql_param = unescape(decodeURI(url.searchParams.get('cql_param')));
         if(cql_param.length > 5){
           lejeri._layers.forEach(function(obj) {          
@@ -194,18 +193,19 @@
           });          
         }
         var inactive_layers = url.searchParams.get('inactive_layers');
-        if(inactive_layers){
-          console.log("inactive");
-          console.log(inactive_layers);
+        if(inactive_layers){          
+          var arr = inactive_layers.split(",");          
+          for (var i = 0; i < arr.length; i++){            
+            $('.leaflet-control-layers-selector')[arr[i]].click();
+            //isključuje neaktivne lejere
+          }
         }
-        //Klik na lejere koje treba isključiti
-        //Predati redne brojeve isključenih lejera
-        //$('.leaflet-control-layers-selector')[brojac].click();
+
       }
 
       function restartovanje(){
         atribut_text = "";
-        //TODO: clear search params iz location.href-a
+        //clear search params iz location.href-a
         var url = new URL(location.href);
         url.searchParams.set('cql_param', "");
         url.searchParams.set('inactive_layers', "");
