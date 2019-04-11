@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>WMS GetFeatureInfo</title>
+    <link rel="stylesheet" href="css/leaflet.draw.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
     <link href="css/multiselect.css" rel="stylesheet"/>
     <script src="js/multiselect.min.js"></script>
@@ -14,6 +15,7 @@
     <link rel="stylesheet" href="css/font-awesome.min.css"/>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="js/leaflet-hash.js"></script>
+    <script src="js/leaflet.draw.js"></script>
     <style type="text/css">
       html, body, #map {
         margin: 0px;
@@ -97,6 +99,7 @@
                       <button type="button" class="btn btn-primary" id="btnAtribut" onclick="dodajAtribut()">Dodaj uslov</button>
                     <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">Pretraga</button>
                     <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">Restart</button>
+                    <button type="button" class="btn btn-info" id="btnRestart" onclick="citanjePoligona()">Poligon</button>
                   </div>                    
   
               </div>
@@ -152,11 +155,75 @@
       var temp_opstina = "";
       var temp_nivo = "";
       var brojac = 0;
+      var drawLayer;
 
       
       //Hash link
-      var hash = new L.Hash(map);      
+      var hash = new L.Hash(map);
+
+      var drawnItems = new L.FeatureGroup();
+      var drawControl = new L.Control.Draw({
+        position: 'bottomright',
+        edit: {
+          featureGroup: drawnItems,
+          remove: false,
+          edit: false
+        },
+        draw: {
+          circlemarker: false,
+        }
+      });
+      map.addControl(drawControl);
+      map.createPane("new-pane");
+      map.on(L.Draw.Event.CREATED, function (e) {
+        var type = e.layerType,
+        drawLayer = e.layer;
+        if (type === 'marker') {
+          drawLayer.bindPopup('A popup!');
+        }else{
+          drawLayer.bindPopup(type);
+          console.log(drawLayer)
+        }
+        drawnItems.addLayer(drawLayer);
+        map.addLayer(drawnItems);
+      });
     
+      function citanjePoligona(){
+        var poligonKoordinate = ""
+        map.eachLayer(function(obj){
+          
+          if(obj._popup && (obj._popup._content === 'polygon')){
+            console.log(obj);
+            console.log(obj.getLatLngs()[0]);
+            console.log(obj.getLatLngs()[0].length);
+            console.log(JSON.stringify(obj.toGeoJSON()));
+
+            for (var i = 0; i < obj.getLatLngs()[0].length; i++) { 
+              poligonKoordinate += obj.getLatLngs()[0][i].lng + " " + obj.getLatLngs()[0][i].lat + ", "
+              //console.log(obj.getLatLngs()[0][i]);
+              //console.log(obj.getLatLngs()[0][i].lat);
+              //console.log(obj.getLatLngs()[0][i].lng);
+            }
+            //Dodavanje prve tačke na kraju, zatvaranje poligona, potrebno za CQL
+            poligonKoordinate += obj.getLatLngs()[0][0].lng + " " + obj.getLatLngs()[0][0].lat;
+
+          }          
+        });//.promise().done(function () {
+          var poligonFilter = "INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
+          lejeri._layers.forEach(function(obj) {          
+          if (obj.overlay) {
+            //console.log(obj);
+            //provjerava da li je aktivan na mapi ili ne
+            if(lejeri._map.hasLayer(obj.layer)){              
+              obj.layer.setParams({cql_filter: poligonFilter});              
+            }
+          }
+        });
+
+        //});
+        //console.log(map._layers);
+
+      }
 
       // create the sidebar instance and add it to the map
       var sidebar = L.control.sidebar({ container: 'sidebar' }).addTo(map);
