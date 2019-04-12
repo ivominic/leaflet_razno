@@ -189,9 +189,9 @@
       });
     
       function citanjePoligona(){
-        var poligonKoordinate = ""
+        var poligonFilter = "";        
         map.eachLayer(function(obj){
-          
+          var poligonKoordinate = "";
           if(obj._popup && (obj._popup._content === 'polygon')){
             console.log(obj);
             console.log(obj.getLatLngs()[0]);
@@ -206,15 +206,21 @@
             }
             //Dodavanje prve tačke na kraju, zatvaranje poligona, potrebno za CQL
             poligonKoordinate += obj.getLatLngs()[0][0].lng + " " + obj.getLatLngs()[0][0].lat;
-
-          }          
+            if(poligonFilter === ""){
+             poligonFilter = "INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
+            }else{
+              poligonFilter += " OR INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
+            }
+          }
         });//.promise().done(function () {
-          var poligonFilter = "INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
+          
           lejeri._layers.forEach(function(obj) {          
           if (obj.overlay) {
             //console.log(obj);
             //provjerava da li je aktivan na mapi ili ne
-            if(lejeri._map.hasLayer(obj.layer)){              
+            if(lejeri._map.hasLayer(obj.layer)){
+              console.log(poligonFilter);
+
               obj.layer.setParams({cql_filter: poligonFilter});              
             }
           }
