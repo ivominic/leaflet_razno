@@ -49,10 +49,10 @@
           <div class="leaflet-sidebar-tabs">
               <!-- top aligned tabs -->
               <ul role="tablist">
-                  <li><a href="#home" role="tab"><i class="fa fa-bars active"></i></a></li>                  
+                  <li><a href="#home" role="tab"><i class="fa fa-bars active"></i></a></li>
               </ul>
           </div>
-  
+
           <!-- panel content -->
           <div class="leaflet-sidebar-content">
               <div class="leaflet-sidebar-pane" id="home">
@@ -82,13 +82,13 @@
                         <option value="ADSS">ADSS</option>
                         <option value="OPGW">OPGW</option>
                     </select>
-                  </div>                  
+                  </div>
 
                   <div class="form-group">
                     <label for="atribut">Odaberite atribut pretrage:</label>
                     <select class="form-control" id="atribut">
                         <option value="name">Name</option>
-                        <option value="description">Description</option>                        
+                        <option value="description">Description</option>
                     </select>
                   </div>
                   <div class="form-group">
@@ -99,19 +99,17 @@
                       <button type="button" class="btn btn-primary" id="btnAtribut" onclick="dodajAtribut()">Dodaj uslov</button>
                     <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">Pretraga</button>
                     <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">Restart</button>
-                    <button type="button" class="btn btn-info" id="btnRestart" onclick="citanjePoligona()">Poligon</button>
-                  </div>                    
-  
+                    <button type="button" class="btn btn-info" id="btnRestart" onclick="poligonCQL()">Poligon</button>
+                  </div>
+
               </div>
-  
+
               <div class="leaflet-sidebar-pane" id="messages">
                   <h1 class="leaflet-sidebar-header">Messages<span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
               </div>
           </div>
       </div>
-  
 
-    
 
     <script>
       var map = L.map('map', {
@@ -120,15 +118,14 @@
       });
 
       var cql_text = "";
-      
+
       document.multiselect('#opstina');
       document.multiselect('#naponskiNivo');
 
-      //var url = 'http://localhost/geoserver/winsoft/wms';
       var url = 'http://localhost/geoserver/wms';
-      
+
       var osmLayer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
-      
+
       var planinica = L.tileLayer.betterWms(url, {
         layers: 'winsoft:planinica',
         transparent: true,
@@ -157,7 +154,6 @@
       var brojac = 0;
       var drawLayer;
 
-      
       //Hash link
       var hash = new L.Hash(map);
 
@@ -178,33 +174,25 @@
       map.on(L.Draw.Event.CREATED, function (e) {
         var type = e.layerType,
         drawLayer = e.layer;
-        if (type === 'marker') {
-          drawLayer.bindPopup('A popup!');
-        }else{
-          drawLayer.bindPopup(type);
-          console.log(drawLayer)
-        }
+        drawLayer.bindPopup(type);
         drawnItems.addLayer(drawLayer);
         map.addLayer(drawnItems);
       });
-    
-      function citanjePoligona(){
-        var poligonFilter = "";        
+
+      /**
+       * @return {string} Kreira CQL upit za prikaz samo onih objekata koji se nalaze u iscrtanim poligonima.
+       */
+      function poligonCQL(){
+        var poligonFilter = "";
         map.eachLayer(function(obj){
           var poligonKoordinate = "";
           if(obj._popup && (obj._popup._content === 'polygon')){
-            console.log(obj);
-            console.log(obj.getLatLngs()[0]);
-            console.log(obj.getLatLngs()[0].length);
-            console.log(JSON.stringify(obj.toGeoJSON()));
+            //console.log(JSON.stringify(obj.toGeoJSON()));
 
-            for (var i = 0; i < obj.getLatLngs()[0].length; i++) { 
+            for (var i = 0; i < obj.getLatLngs()[0].length; i++) {
               poligonKoordinate += obj.getLatLngs()[0][i].lng + " " + obj.getLatLngs()[0][i].lat + ", "
-              //console.log(obj.getLatLngs()[0][i]);
-              //console.log(obj.getLatLngs()[0][i].lat);
-              //console.log(obj.getLatLngs()[0][i].lng);
             }
-            //Dodavanje prve tačke na kraju, zatvaranje poligona, potrebno za CQL
+            //Dodavanje prve tačke na kraju, zatvaranje poligona, potrebno za CQL. Izmijeniti polje geom, u zavisnosti kako je nazvano u konretnom sistemu
             poligonKoordinate += obj.getLatLngs()[0][0].lng + " " + obj.getLatLngs()[0][0].lat;
             if(poligonFilter === ""){
              poligonFilter = "INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
@@ -212,23 +200,10 @@
               poligonFilter += " OR INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
             }
           }
-        });//.promise().done(function () {
-          
-          lejeri._layers.forEach(function(obj) {          
-          if (obj.overlay) {
-            //console.log(obj);
-            //provjerava da li je aktivan na mapi ili ne
-            if(lejeri._map.hasLayer(obj.layer)){
-              console.log(poligonFilter);
-
-              obj.layer.setParams({cql_filter: poligonFilter});              
-            }
-          }
         });
-
-        //});
-        //console.log(map._layers);
-
+        //Vraća pripremljen filter koji uključuje samo objekte koji se nalaze unutar iscrtanih poligona, ako postoji ijedan poligon
+        poligonFilter !== "" && (poligonFilter = "(" + poligonFilter + ")")
+        return poligonFilter
       }
 
       // create the sidebar instance and add it to the map
@@ -236,7 +211,9 @@
       var lejeri = L.control.layers(baseMaps, wmsLayers).addTo(map);
       pocetniFilter();
 
-
+      /**
+       * Dodaje atribute za CQL upit
+       */
       function dodajAtribut(){
         var atribut = $("#atribut option:selected").val();
         var vrijednost = $("#vrijednost").val();
@@ -248,45 +225,46 @@
             atribut_text = atribut + " LIKE '%" + vrijednost + "%'"
           }else{
             atribut_text += " AND " + atribut + " LIKE '%" + vrijednost + "%'"
-          }          
+          }
         }
       }
 
+      /**
+       * Početni filter iz url-a
+       */
       function pocetniFilter(){
         var url = new URL(location.href);
         console.log(url);
         var cql_param = unescape(decodeURI(url.searchParams.get('cql_param')));
         if(cql_param.length > 5){
-          lejeri._layers.forEach(function(obj) {          
-            if (obj.overlay) {
-              if(lejeri._map.hasLayer(obj.layer)){              
-                obj.layer.setParams({cql_filter: cql_param});                 
-              }
-            }
-          });          
+          lejeri._layers.forEach(function(obj) {
+            obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({cql_filter: cql_param});
+          });
         }
         var inactive_layers = url.searchParams.get('inactive_layers');
-        if(inactive_layers){          
-          var arr = inactive_layers.split(",");          
-          for (var i = 0; i < arr.length; i++){            
+        if(inactive_layers){
+          var arr = inactive_layers.split(",");
+          for (var i = 0; i < arr.length; i++){
             $('.leaflet-control-layers-selector')[arr[i]].click();
             //isključuje neaktivne lejere
           }
         }
-
       }
 
+      /**
+       * Uklanja sve CQL filtere prirdružene lejeru
+       */
       function restartovanje(){
         atribut_text = "";
         //clear search params iz location.href-a
         var url = new URL(location.href);
         url.searchParams.set('cql_param', "");
         url.searchParams.set('inactive_layers', "");
-        lejeri._layers.forEach(function(obj) {          
+        lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
             console.log(obj);
             //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
-            if(lejeri._map.hasLayer(obj.layer)){              
+            if(lejeri._map.hasLayer(obj.layer)){
               obj.layer.setParams({cql_filter: 'INCLUDE'}); //'INCLUDE' vrijednost u cql_filteru vrši neku vrstu reseta
               //console.log(obj.layer.wmsParams);
             }
@@ -295,11 +273,44 @@
 
         location.href = url.href
       }
-  
+
+      /**
+       * @return {string} Kreira CQL upit za prikaz samo onih objekata koji se nalaze u odabranim opštinama.
+       */
+      function opstinaCQL(){
+        var temp_opstina = "";
+        if($("#opstina option:selected").size() === $("#opstina option").size()){
+          return temp_opstina;
+        }else{
+          $.each($("#opstina option:selected"), function(){
+            temp_opstina += "'" + $(this).val() + "',";
+          }).promise().done(function () {
+            temp_opstina !== "" && (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) && (temp_opstina = "v_opstina IN (" + temp_opstina + ")");
+            return temp_opstina;
+          });
+        }
+      }
+
+      /**
+       * @return {string} Kreira CQL upit za prikaz samo onih objekata koji pripadaju odabranim naponskim nivoima.
+       */
+      function naponskiNivoCQL(){
+        var temp_nivo = "";
+        if($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()){
+          return temp_nivo;
+        }else{
+          $.each($("#naponskiNivo option:selected"), function(){
+            temp_nivo += "'" + $(this).val() + "',";
+          }).promise().done(function () {
+            temp_nivo !== "" && (temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1)) && (temp_nivo = "v_napon IN (" + temp_nivo + ")");
+            return temp_nivo;
+          });
+        }
+      }
 
       function pretraga(){
 
-        temp_opstina = "";
+
         temp_nivo = "";
         //atribut_text = "";
         cql_text = "";
@@ -320,7 +331,7 @@
               }else{
                 if(atribut_text !== ""){
                   cql_text += " AND " + atribut_text
-                }              
+                }
               }
               var url = new URL(location.href);
               //url.searchParams.append('cql_param', encodeURIComponent(cql_text));
@@ -350,9 +361,9 @@
 
               location.href = url.href;
             }else{
-              $.each($("#naponskiNivo option:selected"), function(){            
+              $.each($("#naponskiNivo option:selected"), function(){
                 temp_nivo += "'" + $(this).val() + "',"
-              }).promise().done(function () { 
+              }).promise().done(function () {
                 if(temp_nivo !== ""){
                   //Uklanja poslednji zarez
                   temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1);
@@ -367,7 +378,7 @@
             }else{
               if(atribut_text !== ""){
                 cql_text += " AND " + atribut_text
-              }              
+              }
             }
             var url = new URL(location.href);
             //url.searchParams.append('cql_param', encodeURIComponent(cql_text));
@@ -381,7 +392,7 @@
                 brojac++;
                 if(lejeri._map.hasLayer(obj.layer)){
                   if(cql_text !== ""){
-                    obj.layer.setParams({cql_filter : cql_text});                    
+                    obj.layer.setParams({cql_filter : cql_text});
                   }
                 }else{
                   inactive_layers += brojac.toString() + ",";
@@ -400,7 +411,7 @@
         }else{
           $.each($("#opstina option:selected"), function(){
             temp_opstina += "'" + $(this).val() + "',"
-          }).promise().done(function () { 
+          }).promise().done(function () {
             if(temp_opstina !== ""){
             //Uklanja poslednji zarez
             temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1);
@@ -411,7 +422,7 @@
             }
           }
 
-          }).promise().done(function () { 
+          }).promise().done(function () {
             //console.log(lejeri.getOverlays());
             temp_nivo = "";
             if($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()){
@@ -420,7 +431,7 @@
               }else{
                 if(atribut_text !== ""){
                   cql_text += " AND " + atribut_text
-                }              
+                }
               }
               var url = new URL(location.href);
               //url.searchParams.append('cql_param', encodeURIComponent(cql_text));
@@ -450,9 +461,9 @@
 
               location.href = url.href;
             }else{
-              $.each($("#naponskiNivo option:selected"), function(){            
+              $.each($("#naponskiNivo option:selected"), function(){
                 temp_nivo += "'" + $(this).val() + "',"
-              }).promise().done(function () { 
+              }).promise().done(function () {
                 if(temp_nivo !== ""){
                   //Uklanja poslednji zarez
                   temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1);
@@ -464,13 +475,13 @@
                 }
               });
             }
-          }).promise().done(function () { 
+          }).promise().done(function () {
             if(cql_text === ""){
               cql_text = atribut_text
             }else{
               if(atribut_text !== ""){
                 cql_text += " AND " + atribut_text
-              }              
+              }
             }
             var url = new URL(location.href);
             //url.searchParams.append('cql_param', encodeURIComponent(cql_text));
@@ -484,7 +495,7 @@
                 brojac++;
                 if(lejeri._map.hasLayer(obj.layer)){
                   if(cql_text !== ""){
-                    obj.layer.setParams({cql_filter : cql_text});                    
+                    obj.layer.setParams({cql_filter : cql_text});
                   }
                 }else{
                   inactive_layers += brojac.toString() + ",";
@@ -497,12 +508,12 @@
             //url.searchParams.append('inactive_layers', encodeURIComponent(inactive_layers));
             url.searchParams.set('inactive_layers', encodeURIComponent(inactive_layers));
             location.href = url.href;
-          });  
+          });
 
         }
 
       }
 
-    </script>  
+    </script>
   </body>
 </html>
