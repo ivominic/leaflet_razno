@@ -79,15 +79,26 @@
           service : 'WFS',
           version : '2.0',
           request : 'GetFeature',
-          typeName : 'winsoft:jezero',
+          typeName : 'winsoft:jezero', //,winsoft:planinica
           outputFormat : 'text/javascript',
           format_options : 'callback:getJson',
           cql_filter: "v_opstina = 'Podgorica'",
           SrsName : 'EPSG:4326'
         };
+        var defaultParametersPlaninica = {
+          service : 'WFS',
+          version : '2.0',
+          request : 'GetFeature',
+          typeName : 'winsoft:planinica',
+          outputFormat : 'text/javascript',
+          format_options : 'callback:getJson',
+          SrsName : 'EPSG:4326'
+        };
         var parameters = L.Util.extend(defaultParameters);
+        var parameters1 = L.Util.extend(defaultParametersPlaninica);
         var URL = owsrootUrl + L.Util.getParamString(parameters);
-        var WFSLayer = null;
+        var URL1 = owsrootUrl + L.Util.getParamString(parameters1);
+        var WFSLayer = null, wfsPlaninica = null;
         var ajax = $.ajax({
             url : URL,
             dataType : 'jsonp',
@@ -106,35 +117,44 @@
                         //layer.bindPopup("Popup text, access attributes with feature.properties.ATTRIBUTE_NAME", popupOptions);
                     }
                 }).addTo(map);
-                console.log(WFSLayer.toGeoJSON);
-                //tokml(WFSLayer).addTo(map);
-                console.log(tokml(WFSLayer.toGeoJSON));
-                saveToFile(WFSLayer.toGeoJSON(), 'test');
+
+
+
+                var ajax1 = $.ajax({
+            url : URL1,
+            dataType : 'jsonp',
+            jsonpCallback : 'getJson',
+            success : function (response) {
+              wfsPlaninica = L.geoJson(response, {
+                    style: function (feature) {
+                        return {
+                            stroke: false,
+                            fillColor: 'FFFFFF',
+                            fillOpacity: 0
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                      WFSLayer.addData(feature);
+                    }
+                }).addTo(map);
+                saveToFile(WFSLayer.toGeoJSON(), 'test1');
+                //saveToFile(WFSLayer.toGeoJSON(), 'test');
+            }
+        });
             }
         });
 
-        document.getElementById('btnExport').onclick = function(e) {
-          alert('asd');
-            // Extract GeoJson from featureGroup
-            var data = featureGroup.toGeoJSON();
 
-            // Stringify the GeoJson
-            var convertedData = 'text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data));
-
-            // Create export
-            document.getElementById('btnExport').setAttribute('href', 'data:' + convertedData);
-            document.getElementById('btnExport').setAttribute('download','data.geojson');
-        }
 
 
 
       }
 
       function saveToFile(content, filename) {
+        console.log(content);
         content = tokml(content);
         var file = filename + '.kml';
         download(file, content);
-        console.log(content);
         /*saveAs(new File(content.toString(), file, {
           type: "text/plain;charset=utf-8"
         }), file);*/
