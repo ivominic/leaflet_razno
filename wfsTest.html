@@ -131,12 +131,30 @@
       }
 
       function saveToFile(content, filename) {
-        var file = filename + '.geojson';
-        saveAs(new File([JSON.stringify(content)], file, {
+        content = tokml(content);
+        var file = filename + '.kml';
+        download(file, content);
+        console.log(content);
+        /*saveAs(new File(content.toString(), file, {
           type: "text/plain;charset=utf-8"
-        }), file);
+        }), file);*/
+        /*saveAs(new File([JSON.stringify(content)], file, {
+          type: "text/plain;charset=utf-8"
+        }), file);*/
       }
 
+      function download(filename, text) {
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+      }
 
     </script>
   </body>
