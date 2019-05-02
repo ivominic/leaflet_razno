@@ -1,114 +1,118 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
     <title>WFS testiranje</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" />
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script src="js/L.TileLayer.BetterWMS.js"></script>
     <script src="js/tokml.js"></script>
     <script src="js/FileSaver.js"></script>
-    <link rel="stylesheet" href="css/font-awesome.min.css"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <style type="text/css">
-      html, body, #map {
+      html,
+      body,
+      #map {
         margin: 0px;
         height: 100%;
         width: 100%;
         font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
       }
-/* Change cursor when mousing over clickable layer */
-/*.leaflet-clickable {
+      /* Change cursor when mousing over clickable layer */
+      /*.leaflet-clickable {
   cursor: crosshair !important;
 }*/
-/* Change cursor when over entire map */
-/*.leaflet-container {
+      /* Change cursor when over entire map */
+      /*.leaflet-container {
   cursor: help !important;
 }*/
       body {
         padding: 0;
         margin: 0;
       }
-
-
     </style>
   </head>
   <body>
-      <button type="button" class="btn btn-success" id="btnExport" onclick="eksportKML()">Export</button>
+    <button type="button" class="btn btn-success" id="btnExport" onclick="eksportKML()">Export</button>
     <div id="map"></div>
 
-
-
     <script>
-      var map = L.map('map', {
-        center: [42,20],
+      var map = L.map("map", {
+        center: [42, 20],
         zoom: 7
       });
 
       var cql_text = "";
 
-      var url = 'http://localhost/geoserver/wms';
+      var url = "http://localhost/geoserver/wms";
 
-      var osmLayer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
+      var osmLayer = L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
 
-      var planinica = L.tileLayer.betterWms(url, {
-        layers: 'winsoft:planinica',
-        transparent: true,
-        format: 'image/png'
-      }).addTo(map);
-      planinica.getContainer().setAttribute('id', 'wmsContainer');
+      var planinica = L.tileLayer
+        .betterWms(url, {
+          layers: "winsoft:planinica",
+          transparent: true,
+          format: "image/png"
+        })
+        .addTo(map);
+      planinica.getContainer().setAttribute("id", "wmsContainer");
 
-      var jezero = L.tileLayer.betterWms(url, {
-        layers: 'winsoft:jezero',
-        transparent: true,
-        format: 'image/png'
-      }).addTo(map);
+      var jezero = L.tileLayer
+        .betterWms(url, {
+          layers: "winsoft:jezero",
+          transparent: true,
+          format: "image/png"
+        })
+        .addTo(map);
 
-      var doljani = L.tileLayer.betterWms(url, {
-        layers: 'winsoft:doljani',
-        transparent: true,
-        format: 'image/png'
-      }).addTo(map);
+      var doljani = L.tileLayer
+        .betterWms(url, {
+          layers: "winsoft:doljani",
+          transparent: true,
+          format: "image/png"
+        })
+        .addTo(map);
 
       var baseMaps = {
-        "OSM": osmLayer
+        OSM: osmLayer
       };
       var wmsLayers = {
-        "Planinica": planinica,
-        "Jezero": jezero,
-        "Doljani": doljani
+        Planinica: planinica,
+        Jezero: jezero,
+        Doljani: doljani
       };
 
-      function eksportKML(){
-        var owsrootUrl = 'http://localhost/geoserver/ows';
+      function eksportKML() {
+        var owsrootUrl = "http://localhost/geoserver/ows";
         var defaultParameters = {
-          service : 'WFS',
-          version : '2.0',
-          request : 'GetFeature',
-          typeName : 'winsoft:jezero', //,winsoft:planinica
-          outputFormat : 'text/javascript',
-          format_options : 'callback:getJson',
+          service: "WFS",
+          version: "2.0",
+          request: "GetFeature",
+          typeName: "winsoft:jezero", //,winsoft:planinica
+          outputFormat: "text/javascript",
+          format_options: "callback:getJson",
           cql_filter: "v_opstina = 'Podgorica'",
-          SrsName : 'EPSG:4326'
+          SrsName: "EPSG:4326"
         };
         var defaultParametersPlaninica = {
-          service : 'WFS',
-          version : '2.0',
-          request : 'GetFeature',
-          typeName : 'winsoft:planinica',
-          outputFormat : 'text/javascript',
-          format_options : 'callback:getJson',
-          SrsName : 'EPSG:4326'
+          service: "WFS",
+          version: "2.0",
+          request: "GetFeature",
+          typeName: "winsoft:planinica",
+          outputFormat: "text/javascript",
+          format_options: "callback:getJson",
+          SrsName: "EPSG:4326"
         };
         var defaultParametersDoljani = {
-          service : 'WFS',
-          version : '2.0',
-          request : 'GetFeature',
-          typeName : 'winsoft:doljani',
-          outputFormat : 'text/javascript',
-          format_options : 'callback:getJson',
-          SrsName : 'EPSG:4326'
+          service: "WFS",
+          version: "2.0",
+          request: "GetFeature",
+          typeName: "winsoft:doljani",
+          outputFormat: "text/javascript",
+          format_options: "callback:getJson",
+          SrsName: "EPSG:4326"
         };
 
         var parameters = L.Util.extend(defaultParameters);
@@ -117,51 +121,50 @@
         var URL = owsrootUrl + L.Util.getParamString(parameters);
         var URL1 = owsrootUrl + L.Util.getParamString(parameters1);
         var URL2 = owsrootUrl + L.Util.getParamString(parameters2);
-        var WFSLayer = null, wfsPlaninica = null;
+        var WFSLayer = null,
+          wfsPlaninica = null;
         var ajax = $.ajax({
-            url : URL,
-            dataType : 'jsonp',
-            jsonpCallback : 'getJson',
-            success : function (response) {
-                WFSLayer = L.geoJson(response, {
-                    style: function (feature) {
-                        return {
-                            stroke: false,
-                            fillColor: 'FFFFFF',
-                            fillOpacity: 0
-                        };
-                    },
-                    onEachFeature: function (feature, layer) {
-                        //popupOptions = {maxWidth: 200};
-                        //layer.bindPopup("Popup text, access attributes with feature.properties.ATTRIBUTE_NAME", popupOptions);
-                    }
-                }).addTo(map);
+          url: URL,
+          dataType: "jsonp",
+          jsonpCallback: "getJson",
+          success: function(response) {
+            WFSLayer = L.geoJson(response, {
+              style: function(feature) {
+                return {
+                  stroke: false,
+                  fillColor: "FFFFFF",
+                  fillOpacity: 0
+                };
+              },
+              onEachFeature: function(feature, layer) {
+                //popupOptions = {maxWidth: 200};
+                //layer.bindPopup("Popup text, access attributes with feature.properties.ATTRIBUTE_NAME", popupOptions);
+              }
+            }).addTo(map);
 
-
-
-                var ajax1 = $.ajax({
-                  url : URL1,
-                  dataType : 'jsonp',
-                  jsonpCallback : 'getJson',
-                  success : function (response) {
-                    wfsPlaninica = L.geoJson(response, {
-                          style: function (feature) {
-                              return {
-                                  stroke: false,
-                                  fillColor: 'FFFFFF',
-                                  fillOpacity: 0
-                              };
-                          },
-                          onEachFeature: function (feature, layer) {
-                            WFSLayer.addData(feature);
-                          }
-                      }).addTo(map);
-                      //saveToFile(WFSLayer.toGeoJSON(), 'test1');
-                      //saveToFile(WFSLayer.toGeoJSON(), 'test');
+            var ajax1 = $.ajax({
+              url: URL1,
+              dataType: "jsonp",
+              jsonpCallback: "getJson",
+              success: function(response) {
+                wfsPlaninica = L.geoJson(response, {
+                  style: function(feature) {
+                    return {
+                      stroke: false,
+                      fillColor: "FFFFFF",
+                      fillOpacity: 0
+                    };
+                  },
+                  onEachFeature: function(feature, layer) {
+                    WFSLayer.addData(feature);
                   }
-                });
+                }).addTo(map);
+                //saveToFile(WFSLayer.toGeoJSON(), 'test1');
+                //saveToFile(WFSLayer.toGeoJSON(), 'test');
+              }
+            });
 
-                /*var ajax2 = $.ajax({
+            /*var ajax2 = $.ajax({
                   url : URL2,
                   dataType : 'jsonp',
                   jsonpCallback : 'getJson',
@@ -182,20 +185,14 @@
                       //saveToFile(WFSLayer.toGeoJSON(), 'test');
                   }
                 });*/
-
-            }
+          }
         });
-
-
-
-
-
       }
 
       function saveToFile(content, filename) {
         console.log(content);
         content = tokml(content);
-        var file = filename + '.kml';
+        var file = filename + ".kml";
         download(file, content);
         /*saveAs(new File(content.toString(), file, {
           type: "text/plain;charset=utf-8"
@@ -206,18 +203,17 @@
       }
 
       function download(filename, text) {
-        var element = document.createElement('a');
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-        element.setAttribute('download', filename);
+        var element = document.createElement("a");
+        element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text));
+        element.setAttribute("download", filename);
 
-        element.style.display = 'none';
+        element.style.display = "none";
         document.body.appendChild(element);
 
         element.click();
 
         document.body.removeChild(element);
       }
-
     </script>
   </body>
 </html>

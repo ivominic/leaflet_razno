@@ -2,20 +2,26 @@
 <html>
   <head>
     <title>WMS GetFeatureInfo</title>
+    <script src="js/popper.min.js"></script>
     <link rel="stylesheet" href="css/leaflet.draw.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
-    <link href="css/multiselect.css" rel="stylesheet" />
-    <script src="js/multiselect.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="css/leaflet-sidebar.css" />
     <script src="js/leaflet-sidebar.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script src="js/L.TileLayer.BetterWMS.js"></script>
     <link rel="stylesheet" href="css/font-awesome.min.css" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
     <script src="js/leaflet-hash.js"></script>
     <script src="js/leaflet.draw.js"></script>
+    <script src="js/bootstrap-multiselect.js"></script>
+    <link href="css/bootstrap-multiselect.css" rel="stylesheet" />
     <style type="text/css">
       html,
       body,
@@ -64,24 +70,24 @@
 
           <div>
             <label for="opstina">Odaberite opštinu:</label><br />
-            <select class="form-control" id="opstina" multiple>
-              <option value="Andrijevica">Andrijevica</option>
-              <option value="Bar">Bar</option>
-              <option value="Budva">Budva</option>
-              <option value="Cetinje">Cetinje</option>
-              <option value="Podgorica">Podgorica</option>
+            <select id="opstina" multiple="multiple">
+              <option value="Andrijevica" selected="selected">Andrijevica</option>
+              <option value="Bar" selected="selected">Bar</option>
+              <option value="Budva" selected="selected">Budva</option>
+              <option value="Cetinje" selected="selected">Cetinje</option>
+              <option value="Podgorica" selected="selected">Podgorica</option>
             </select>
           </div>
 
           <div>
             <label for="naponskiNivo">Odaberite naponski nivo:</label><br />
-            <select class="form-control" id="naponskiNivo" multiple>
-              <option value="0.4 kV">0.4 kv</option>
-              <option value="10 kV">10 kv</option>
-              <option value="35 kV">35 kv</option>
-              <option value="Optika">Optika</option>
-              <option value="ADSS">ADSS</option>
-              <option value="OPGW">OPGW</option>
+            <select id="naponskiNivo" multiple="multiple">
+              <option value="0.4 kV" selected="selected">0.4 kv</option>
+              <option value="10 kV" selected="selected">10 kv</option>
+              <option value="35 kV" selected="selected">35 kv</option>
+              <option value="Optika" selected="selected">Optika</option>
+              <option value="ADSS" selected="selected">ADSS</option>
+              <option value="OPGW" selected="selected">OPGW</option>
             </select>
           </div>
 
@@ -109,6 +115,9 @@
             <button type="button" class="btn btn-info" id="btnPoligon" onclick="poligonCQL()">
               Poligon
             </button>
+            <button type="button" class="btn btn-info" id="btnLista" onclick="listaTest()">
+              Lista
+            </button>
           </div>
         </div>
 
@@ -128,36 +137,41 @@
 
       var cql_text = "";
 
-      document.multiselect("#opstina");
-      document.multiselect("#naponskiNivo");
+      //$(document).ready(function() {
+      $("#opstina").multiselect({
+        buttonWidth: "100%"
+      });
+      $("#naponskiNivo").multiselect({
+        buttonWidth: "100%"
+      });
+      //});
+
+      //document.multiselect('#opstina');
+      //document.multiselect('#naponskiNivo');
 
       var url = "http://localhost/geoserver/wms";
 
       var osmLayer = L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
 
-      var planinica = L.tileLayer
-        .betterWms(url, {
-          layers: "winsoft:planinica",
-          transparent: true,
-          format: "image/png"
-        })
-        .addTo(map);
-      planinica.getContainer().setAttribute("id", "wmsContainer");
+      /*var planinica = L.tileLayer.betterWms(url, {
+        layers: 'winsoft:planinica',
+        transparent: true,
+        format: 'image/png'
+      }).addTo(map);
+      planinica.getContainer().setAttribute('id', 'wmsContainer');
 
-      var jezero = L.tileLayer
-        .betterWms(url, {
-          layers: "winsoft:jezero",
-          transparent: true,
-          format: "image/png"
-        })
-        .addTo(map);
+      var jezero = L.tileLayer.betterWms(url, {
+        layers: 'winsoft:jezero',
+        transparent: true,
+        format: 'image/png'
+      }).addTo(map);*/
 
       var baseMaps = {
         OSM: osmLayer
       };
       var wmsLayers = {
-        Planinica: planinica,
-        Jezero: jezero
+        //"Planinica": planinica,
+        //"Jezero": jezero
       };
 
       var lejeriZaFiltriranje = wmsLayers;
@@ -191,6 +205,23 @@
         drawnItems.addLayer(drawLayer);
         map.addLayer(drawnItems);
       });
+
+      //Testna metoda za rad sa listom
+      function listaTest() {
+        var temp_opstina = "";
+        alert($("#opstina option:selected").size());
+        alert($("#opstina option").size());
+        /*if($("#opstina option:selected").size() === $("#opstina option").size()){
+          return temp_opstina;
+        }else{
+          $.each($("#opstina option:selected"), function(){
+            temp_opstina += "'" + $(this).val() + "',";
+          }).promise().done(function () {
+            temp_opstina !== "" && (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) && (temp_opstina = "v_opstina IN (" + temp_opstina + ")");
+            return temp_opstina;
+          });
+        }*/
+      }
 
       /**
        * @return {string} Kreira CQL upit za prikaz samo onih objekata koji se nalaze u iscrtanim poligonima.
