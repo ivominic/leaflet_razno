@@ -39,6 +39,10 @@
       /*.leaflet-container {
   cursor: help !important;
 }*/
+.hidden{
+  display:none;
+  visibility:hidden;
+}
       body {
         padding: 0;
         margin: 0;
@@ -91,6 +95,14 @@
             </select>
           </div>
 
+          <div>
+            <label for="ddlLejer">Odaberite lejer:</label><br />
+            <select id="ddlLejer" class="form-control" >
+              <option value="jezero">Jezero</option>
+              <option value="planinica">Planinica</option>
+            </select>
+          </div>
+
           <div class="form-group">
             <label for="atribut">Odaberite atribut pretrage:</label>
             <select class="form-control" id="atribut">
@@ -118,6 +130,22 @@
             <button type="button" class="btn btn-info" id="btnLista" onclick="listaTest()">
               Lista
             </button>
+
+
+            <table id="tblAtributi" class=" table order-list">
+                <thead>
+                    <tr>
+                        <th>Lejer</th>
+                        <!--<th>LejerValue</th>-->
+                        <th>Atribut</th>
+                        <!--<th>AtributValue</th>-->
+                        <th>Vrijednost</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
           </div>
         </div>
 
@@ -259,12 +287,16 @@
        * Dodaje atribute za CQL upit
        */
       function dodajAtribut() {
-        var atribut = $("#atribut option:selected").val();
+        var atributNaziv = $("#atribut option:selected").text();
+        var atributValue = $("#atribut option:selected").val();
+        var lejerNaziv = $("#ddlLejer option:selected").text();
+        var lejerValue = $("#ddlLejer option:selected").val();
         var vrijednost = $("#vrijednost").val();
 
         if (vrijednost.trim() === "" || typeof vrijednost === undefined) {
           alert("Potrebno je unijeti vrijednost atributa");
         } else {
+          AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost)
           if (atribut_text === "") {
             atribut_text = atribut + " LIKE '%" + vrijednost + "%'";
           } else {
@@ -564,6 +596,53 @@
             });
         }
       }
+
+
+
+// Dio koji se odnosi na rad sa tabelom atributa
+
+function Add() {
+            console.log($("#ddlLejer").val());
+            console.log($("#ddlLejer option:selected").text());
+            AddRow($("#txtName").val(), $("#txtCountry").val());
+            $("#txtName").val("");
+            $("#txtCountry").val("");
+        };
+
+        function AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost) {
+            var tBody = $("#tblAtributi > TBODY")[0];
+
+            row = tBody.insertRow(-1);
+
+            var cell = $(row.insertCell(-1));
+            //cell.html(lejerNaziv);
+            //cell = $(row.insertCell(-1));
+            cell.html(lejerValue);
+            cell = $(row.insertCell(-1));
+            //cell.html(atributNaziv);
+            //cell = $(row.insertCell(-1));
+            cell.html(atributValue);
+            cell = $(row.insertCell(-1));
+            cell.html(vrijednost);
+
+            cell = $(row.insertCell(-1));
+            var btnRemove = $("<input />");
+            btnRemove.attr("type", "button");
+            btnRemove.attr("onclick", "RemoveAttribute(this);");
+            btnRemove.val("X");
+            cell.append(btnRemove);
+        };
+
+        function RemoveAttribute(button) {
+            var row = $(button).closest("TR");
+            var name = $("TD", row).eq(0).html();
+            if (confirm("Da li želite da uklonite atribut " +  $("TD", row).eq(1).html() + " za lejer " +  $("TD", row).eq(0).html() + "?")) {
+                var table = $("#tblAtributi")[0];
+                table.deleteRow(row[0].rowIndex);
+            }
+        };
+
+
     </script>
   </body>
 </html>
