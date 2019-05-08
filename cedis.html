@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CEDIS mapa</title>
+    <script src="js/popper.min.js"></script>
+    <link rel="stylesheet" href="css/leaflet.draw.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/leaflet-sidebar.css" />
+    <script src="js/leaflet-sidebar.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="js/L.TileLayer.BetterWMS.js"></script>
+    <link rel="stylesheet" href="css/font-awesome.min.css" />
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
+    <script src="js/leaflet-hash.js"></script>
+    <script src="js/leaflet.draw.js"></script>
+    <script src="js/bootstrap-multiselect.js"></script>
+    <link href="css/bootstrap-multiselect.css" rel="stylesheet" />
+    <style type="text/css">
+      html,
+      body,
+      #map {
+        margin: 0px;
+        height: 100%;
+        width: 100%;
+        font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
+      }
+      /* Change cursor when mousing over clickable layer */
+      .leaflet-clickable {
+        cursor: crosshair !important;
+      }
+      /* Change cursor when over entire map */
+      .leaflet-container {
+        cursor: help !important;
+      }
+      .hidden{
+        display:none;
+        visibility:hidden;
+      }
+      body {
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <!-- optionally define the sidebar content via HTML markup -->
+    <div id="sidebar" class="leaflet-sidebar collapsed">
+      <!-- nav tabs -->
+      <div class="leaflet-sidebar-tabs">
+        <!-- top aligned tabs -->
+        <ul role="tablist">
+          <li>
+            <a href="#home" role="tab"><em class="fa fa-bars active"></em></a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- panel content -->
+      <div class="leaflet-sidebar-content">
+        <div class="leaflet-sidebar-pane" id="home">
+          <h1 class="leaflet-sidebar-header">
+            Pretraga
+            <span class="leaflet-sidebar-close"><em class="fa fa-caret-left"></em></span>
+          </h1>
+
+          <div>
+            <label for="opstina">Odaberite opštinu:</label><br />
+            <select id="opstina" multiple="multiple">
+              <option value="Andrijevica" selected="selected">Andrijevica</option>
+              <option value="Bar" selected="selected">Bar</option>
+              <option value="Budva" selected="selected">Budva</option>
+              <option value="Cetinje" selected="selected">Cetinje</option>
+              <option value="Podgorica" selected="selected">Podgorica</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="naponskiNivo">Odaberite naponski nivo:</label><br />
+            <select id="naponskiNivo" multiple="multiple">
+              <option value="0.4 kV" selected="selected">0.4 kv</option>
+              <option value="10 kV" selected="selected">10 kv</option>
+              <option value="35 kV" selected="selected">35 kv</option>
+              <option value="Optika" selected="selected">Optika</option>
+              <option value="ADSS" selected="selected">ADSS</option>
+              <option value="OPGW" selected="selected">OPGW</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="ddlLejer">Odaberite lejer:</label><br />
+            <select id="ddlLejer" class="form-control" >
+              <option value="jezero">Jezero</option>
+              <option value="planinica">Planinica</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="atribut">Odaberite atribut pretrage:</label>
+            <select class="form-control" id="atribut">
+              <option value="name">Name</option>
+              <option value="description">Description</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="vrijednost">Vrijednost za pretra&#382;ivanje:</label>
+            <input type="text" class="form-control" id="vrijednost" />
+          </div>
+          <div class="form-group">
+            <button type="button" class="btn btn-primary" id="btnAtribut" onclick="dodajAtribut()">
+              Dodaj uslov
+            </button>
+            <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">
+              Pretraga
+            </button>
+            <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">
+              Restart
+            </button>
+            <button type="button" class="btn btn-info" id="btnPoligon" onclick="poligonCQL()">
+              Poligon
+            </button>
+            <button type="button" class="btn btn-info" id="btnLista" onclick="pozivListaTest()">
+              Lista
+            </button>
+
+
+            <table id="tblAtributi" class=" table order-list">
+                <thead>
+                    <tr>
+                        <th>Lejer</th>
+                        <!--<th>LejerValue</th>-->
+                        <th>Atribut</th>
+                        <!--<th>AtributValue</th>-->
+                        <th>Vrijednost</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="leaflet-sidebar-pane" id="messages">
+          <h1 class="leaflet-sidebar-header">
+            Messages<span class="leaflet-sidebar-close"><em class="fa fa-caret-left"></em></span>
+          </h1>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var map = L.map("map", {
+        center: [42, 20],
+        zoom: 7
+      });
+
+      var cql_text = "";
+
+      //$(document).ready(function() {
+      $("#opstina").multiselect({
+        buttonWidth: "100%"
+      });
+      $("#naponskiNivo").multiselect({
+        buttonWidth: "100%"
+      });
+      //});
+
+      //document.multiselect('#opstina');
+      //document.multiselect('#naponskiNivo');
+
+      var url = "http://localhost/geoserver/wms";
+
+      var osmLayer = L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
+
+      var planinica = L.tileLayer.betterWms(url, {
+        layers: 'winsoft:planinica',
+        transparent: true,
+        format: 'image/png'
+      }).addTo(map);
+      planinica.getContainer().setAttribute('id', 'wmsContainer');
+
+      var jezero = L.tileLayer.betterWms(url, {
+        layers: 'winsoft:jezero',
+        transparent: true,
+        format: 'image/png'
+      }).addTo(map);
+
+      var baseMaps = {
+        OSM: osmLayer
+      };
+      var wmsLayers = {
+        //"Planinica": planinica,
+        //"Jezero": jezero
+      };
+
+      var lejeriZaFiltriranje = wmsLayers;
+      var atribut_text = "";
+      var temp_opstina = "";
+      var temp_nivo = "";
+      var poligonFilter = "";
+      var brojac = 0;
+      var drawLayer;
+
+      //Hash link
+      var hash = new L.Hash(map);
+
+      var drawnItems = new L.FeatureGroup();
+      var drawControl = new L.Control.Draw({
+        position: "bottomright",
+        edit: {
+          featureGroup: drawnItems,
+          remove: false,
+          edit: false
+        },
+        draw: {
+          circlemarker: false
+        }
+      });
+      map.addControl(drawControl);
+      map.createPane("new-pane");
+      map.on(L.Draw.Event.CREATED, function(e) {
+        var type = e.layerType,
+        drawLayer = e.layer;
+        drawLayer.bindPopup(type);
+        drawnItems.addLayer(drawLayer);
+        map.addLayer(drawnItems);
+      });
+
+      function pozivListaTest(){
+        var tempalrt = listaTest();
+        //console.log(temp_nivo);
+        //alert(temp_nivo);
+      }
+
+      function listaTest() {
+        $('#tblAtributi tr').each(function (i, row) {
+        //console.log(i,row.cells[0]);
+        //prikza vrijednosti iz tabele
+
+          i > 0 && console.log(i,row.cells[0].innerHTML);
+          i > 0 && console.log(i,row.cells[1].innerHTML);
+          i > 0 && console.log(i,row.cells[2].innerHTML);
+          //TODO: Raspodjela parametara po lejerima
+
+        });
+      }
+
+      /**
+       * @return {string} Kreira CQL upit za prikaz samo onih objekata koji se nalaze u iscrtanim poligonima.
+       */
+      function poligonCQL() {
+        poligonFilter = "";
+        map.eachLayer(function(obj) {
+          var poligonKoordinate = "";
+          if (obj._popup && obj._popup._content === "polygon") {
+            //console.log(JSON.stringify(obj.toGeoJSON()));
+
+            for (var i = 0; i < obj.getLatLngs()[0].length; i++) {
+              poligonKoordinate += obj.getLatLngs()[0][i].lng + " " + obj.getLatLngs()[0][i].lat + ", ";
+            }
+            //Dodavanje prve tačke na kraju, zatvaranje poligona, potrebno za CQL. Izmijeniti polje geom, u zavisnosti kako je nazvano u konretnom sistemu
+            poligonKoordinate += obj.getLatLngs()[0][0].lng + " " + obj.getLatLngs()[0][0].lat;
+            if (poligonFilter === "") {
+              poligonFilter = "INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
+            } else {
+              poligonFilter += " OR INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
+            }
+          }
+        });
+        //Vraća pripremljen filter koji uključuje samo objekte koji se nalaze unutar iscrtanih poligona, ako postoji ijedan poligon
+        poligonFilter !== "" && (poligonFilter = "(" + poligonFilter + ")");
+        return poligonFilter;
+      }
+
+      // create the sidebar instance and add it to the map
+      var sidebar = L.control.sidebar({ container: "sidebar" }).addTo(map);
+      var lejeri = L.control.layers(baseMaps, wmsLayers).addTo(map);
+      pocetniFilter();
+
+      /**
+       * Dodaje atribute za CQL upit
+       */
+      function dodajAtribut() {
+        var atributNaziv = $("#atribut option:selected").text();
+        var atributValue = $("#atribut option:selected").val();
+        var lejerNaziv = $("#ddlLejer option:selected").text();
+        var lejerValue = $("#ddlLejer option:selected").val();
+        var vrijednost = $("#vrijednost").val();
+
+        if (vrijednost.trim() === "" || typeof vrijednost === undefined) {
+          alert("Potrebno je unijeti vrijednost atributa");
+        } else {
+          AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost)
+          /*if (atribut_text === "") {
+            atribut_text = atribut + " LIKE '%" + vrijednost + "%'";
+          } else {
+            atribut_text += " AND " + atribut + " LIKE '%" + vrijednost + "%'";
+          }*/
+        }
+      }
+
+      /**
+       * Početni filter iz url-a
+       */
+      function pocetniFilter() {
+        var url = new URL(location.href);
+        console.log(url);
+        var cql_param = unescape(decodeURI(url.searchParams.get("cql_param")));
+        if (cql_param.length > 5) {
+          lejeri._layers.forEach(function(obj) {
+            obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_param });
+          });
+        }
+        var inactive_layers = url.searchParams.get("inactive_layers");
+        if (inactive_layers) {
+          var arr = inactive_layers.split(",");
+          for (var i = 0; i < arr.length; i++) {
+            $(".leaflet-control-layers-selector")[arr[i]].click();
+            //isključuje neaktivne lejere
+          }
+        }
+      }
+
+      /**
+       * Uklanja sve CQL filtere prirdružene lejeru
+       */
+      function restartovanje() {
+        atribut_text = "";
+        //clear search params iz location.href-a
+        var url = new URL(location.href);
+        url.searchParams.set("cql_param", "");
+        url.searchParams.set("inactive_layers", "");
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            console.log(obj);
+            //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
+            if (lejeri._map.hasLayer(obj.layer)) {
+              obj.layer.setParams({ cql_filter: "INCLUDE" }); //'INCLUDE' vrijednost u cql_filteru vrši neku vrstu reseta
+              //console.log(obj.layer.wmsParams);
+            }
+          }
+        });
+
+        location.href = url.href;
+      }
+
+      /**
+       * @return {string} Kreira CQL upit za prikaz samo onih objekata koji se nalaze u odabranim opštinama.
+       */
+      function opstinaCQL() {
+        temp_opstina = "";
+        if($("#opstina option:selected").size() === $("#opstina option").size()){
+          temp_opstina = "";
+        }else{
+          $.each($("#opstina option:selected"), function(){
+            temp_opstina += "'" + $(this).val() + "',";
+          }).promise().done(function () {
+            temp_opstina !== "" && (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) && (temp_opstina = "v_opstina IN (" + temp_opstina + ")");
+            //return temp_opstina;
+          });
+        }
+      }
+
+      /**
+       * @return {string} Kreira CQL upit za prikaz samo onih objekata koji pripadaju odabranim naponskim nivoima.
+       */
+      function naponskiNivoCQL() {
+        temp_nivo = "";
+        if($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()){
+          temp_nivo = "";
+        }else{
+          $.each($("#naponskiNivo option:selected"), function(){
+            temp_nivo += "'" + $(this).val() + "',";
+          }).promise().done(function () {
+            temp_nivo !== "" && (temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1)) && (temp_nivo = "v_napon IN (" + temp_nivo + ")");
+          });
+        }
+      }
+
+      function pretraga() {
+        temp_nivo = "";
+        //atribut_text = "";
+        cql_text = "";
+
+        if ($("#opstina option:selected").size() === 0 || $("#naponskiNivo option:selected").size() === 0) {
+          alert("Potrebno je odabrati bar jednu opštinu i naponski nivo");
+          return false;
+        }
+
+      }
+
+
+      // Dio koji se odnosi na rad sa tabelom atributa
+      function AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost) {
+          var tBody = $("#tblAtributi > TBODY")[0];
+
+          row = tBody.insertRow(-1);
+
+          var cell = $(row.insertCell(-1));
+          //cell.html(lejerNaziv);
+          //cell = $(row.insertCell(-1));
+          cell.html(lejerValue);
+          cell = $(row.insertCell(-1));
+          //cell.html(atributNaziv);
+          //cell = $(row.insertCell(-1));
+          cell.html(atributValue);
+          cell = $(row.insertCell(-1));
+          cell.html(vrijednost);
+
+          cell = $(row.insertCell(-1));
+          var btnRemove = $("<input />");
+          btnRemove.attr("type", "button");
+          btnRemove.attr("onclick", "RemoveAttribute(this);");
+          btnRemove.val("X");
+          cell.append(btnRemove);
+      };
+
+      function RemoveAttribute(button) {
+          var row = $(button).closest("TR");
+          var name = $("TD", row).eq(0).html();
+          //if (confirm("Da li želite da uklonite atribut " +  $("TD", row).eq(1).html() + " za lejer " +  $("TD", row).eq(0).html() + "?")) {
+              var table = $("#tblAtributi")[0];
+              table.deleteRow(row[0].rowIndex);
+          //}
+      };
+
+
+    </script>
+  </body>
+</html>
