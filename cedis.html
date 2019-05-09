@@ -174,8 +174,18 @@
       });
       //});
 
-      //document.multiselect('#opstina');
-      //document.multiselect('#naponskiNivo');
+      /*Inicijalni podaci*/
+
+      var mapaLejera = new Map([
+        ['planinica', 'Planinica'],
+        ['jezero', 'Jezero'],
+        ['treci', 'Treci']
+      ]);
+      /*for (let [k, v] of mapaLejera) {
+        console.log("Key: " + k);
+        console.log("Value: " + v);
+      }*/
+
 
       var url = "http://localhost/geoserver/wms";
 
@@ -198,9 +208,14 @@
         OSM: osmLayer
       };
       var wmsLayers = {
-        //"Planinica": planinica,
-        //"Jezero": jezero
+        "Planinica": planinica,
+        "Jezero": jezero
       };
+      console.log(Object.keys(wmsLayers));
+      console.log(Object.values(wmsLayers));
+      console.log(Object.entries(wmsLayers));
+      console.log(wmsLayers["Planinica"]);
+
 
       var lejeriZaFiltriranje = wmsLayers;
       var atribut_text = "";
