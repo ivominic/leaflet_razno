@@ -22,6 +22,8 @@
     <script src="js/leaflet.draw.js"></script>
     <script src="js/bootstrap-multiselect.js"></script>
     <link href="css/bootstrap-multiselect.css" rel="stylesheet" />
+    <script src="js/tokml.js"></script>
+    <script src="js/FileSaver.js"></script>
     <style type="text/css">
       html,
       body,
@@ -124,7 +126,7 @@
             <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">
               Restart
             </button>
-            <button type="button" class="btn btn-info" id="btnLista" onclick="pozivListaTest()">
+            <button type="button" class="btn btn-info" id="btnLista" onclick="eksportKML()">
               KML
             </button>
 
@@ -552,6 +554,64 @@
         var table = $("#tblAtributi")[0];
         table.deleteRow(row[0].rowIndex);
         //}
+      }
+
+      function eksportKML() {
+        //TODO: Zamijeniti naziv lejera lejerom koji se downloaduje
+        var owsrootUrl = "http://localhost/geoserver/ows";
+        var defaultParameters = {
+          service: "WFS",
+          version: "2.0",
+          request: "GetFeature",
+          typeName: "winsoft:jezero",
+          outputFormat: "text/javascript",
+          format_options: "callback:getJson",
+          cql_filter: "v_opstina = 'Podgorica'",
+          SrsName: "EPSG:4326"
+        };
+
+        var parameters = L.Util.extend(defaultParameters);
+        var URL = owsrootUrl + L.Util.getParamString(parameters);
+        var WFSLayer = null;
+        var ajax = $.ajax({
+          url: URL,
+          dataType: "jsonp",
+          jsonpCallback: "getJson",
+          success: function(response) {
+            WFSLayer = L.geoJson(response, {
+              style: function(feature) {
+                return {
+                  stroke: false,
+                  fillColor: "FFFFFF",
+                  fillOpacity: 0
+                };
+              },
+              onEachFeature: function(feature, layer) {
+                //popupOptions = {maxWidth: 200};
+                //layer.bindPopup("Popup text, access attributes with feature.properties.ATTRIBUTE_NAME", popupOptions);
+              }
+            }).addTo(map);
+            saveToFile(WFSLayer.toGeoJSON(), "testKML");
+          }
+        });
+      }
+
+      function saveToFile(content, filename) {
+        //console.log(content);
+        content = tokml(content);
+        var file = filename + ".kml";
+        download(file, content);
+      }
+
+      function download(filename, text) {
+        var element = document.createElement("a");
+        element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text));
+        element.setAttribute("download", filename);
+
+        element.style.display = "none";
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
       }
     </script>
   </body>
