@@ -124,20 +124,15 @@
             <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">
               Restart
             </button>
-            <button type="button" class="btn btn-info" id="btnPoligon" onclick="poligonCQL()">
-              Poligon
-            </button>
             <button type="button" class="btn btn-info" id="btnLista" onclick="pozivListaTest()">
-              Lista
+              KML
             </button>
 
             <table id="tblAtributi" class=" table order-list">
               <thead>
                 <tr>
                   <th>Lejer</th>
-                  <!--<th>LejerValue</th>-->
                   <th>Atribut</th>
-                  <!--<th>AtributValue</th>-->
                   <th>Vrijednost</th>
                   <th></th>
                 </tr>
@@ -233,11 +228,10 @@
       };
 
       var lejeriZaFiltriranje = wmsLayers;
-      var atribut_text = "";
       var temp_opstina = "";
       var temp_nivo = "";
-      var poligonFilter = "";
-      var brojac = 0;
+      var temp_poligon = "";
+      var inactive_layers = "";
       var drawLayer;
 
       //Hash link
@@ -285,21 +279,38 @@
             })
           );
         });
+      }
 
-        //$("#atribut .options").append(atributiDdl[$("#ddlLejer option:selected").text()]);
+      /**
+       * @return {string} Kreira spisak deaktiviranih lejera
+       */
+      function inactiveLayers() {
+        inactive_layers = "";
+        var brojac = 0;
+
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            brojac++;
+            !lejeri._map.hasLayer(obj.layer) && (inactive_layers += brojac.toString() + ",");
+          }
+        });
+
+        inactive_layers !== "" && (inactive_layers = inactive_layers.substring(0, inactive_layers.length - 1));
+        return inactive_layers;
       }
 
       /**
        * @return {string} Kreira CQL upit za svaki od lejera koji su unešeni u tabelu.
        */
-      function cqlFilterZaLejere() {
+      function atributCQL() {
+        //TODO: loše formatira url parametre kad je "%" i prije vrijednosti
         $("#tblAtributi tr").each(function(i, row) {
           //console.log(i,row.cells[0]);
           if (i > 0) {
             if (cqlLejer[row.cells[0].innerHTML] === "" || cqlLejer[row.cells[0].innerHTML] === undefined) {
-              cqlLejer[row.cells[0].innerHTML] = row.cells[1].innerHTML + " LIKE '%" + row.cells[2].innerHTML + "%'";
+              cqlLejer[row.cells[0].innerHTML] = row.cells[1].innerHTML + " LIKE '" + row.cells[2].innerHTML + "%'";
             } else {
-              cqlLejer[row.cells[0].innerHTML] += " AND " + row.cells[1].innerHTML + " LIKE '%" + row.cells[2].innerHTML + "%'";
+              cqlLejer[row.cells[0].innerHTML] += " AND " + row.cells[1].innerHTML + " LIKE '" + row.cells[2].innerHTML + "%'";
             }
             //console.log(cqlLejer[row.cells[0].innerHTML]);
           }
@@ -311,7 +322,7 @@
        * @return {string} Kreira CQL upit za prikaz samo onih objekata koji se nalaze u iscrtanim poligonima.
        */
       function poligonCQL() {
-        poligonFilter = "";
+        temp_poligon = "";
         map.eachLayer(function(obj) {
           var poligonKoordinate = "";
           if (obj._popup && obj._popup._content === "polygon") {
@@ -322,16 +333,16 @@
             }
             //Dodavanje prve tačke na kraju, zatvaranje poligona, potrebno za CQL. Izmijeniti polje geom, u zavisnosti kako je nazvano u konretnom sistemu
             poligonKoordinate += obj.getLatLngs()[0][0].lng + " " + obj.getLatLngs()[0][0].lat;
-            if (poligonFilter === "") {
-              poligonFilter = "INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
+            if (temp_poligon === "") {
+              temp_poligon = "INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
             } else {
-              poligonFilter += " OR INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
+              temp_poligon += " OR INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
             }
           }
         });
         //Vraća pripremljen filter koji uključuje samo objekte koji se nalaze unutar iscrtanih poligona, ako postoji ijedan poligon
-        poligonFilter !== "" && (poligonFilter = "(" + poligonFilter + ")");
-        return poligonFilter;
+        temp_poligon !== "" && (temp_poligon = "(" + temp_poligon + ")");
+        return temp_poligon;
       }
 
       // create the sidebar instance and add it to the map
@@ -353,11 +364,6 @@
           alert("Potrebno je unijeti vrijednost atributa");
         } else {
           AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost);
-          /*if (atribut_text === "") {
-            atribut_text = atribut + " LIKE '%" + vrijednost + "%'";
-          } else {
-            atribut_text += " AND " + atribut + " LIKE '%" + vrijednost + "%'";
-          }*/
         }
       }
 
@@ -370,11 +376,33 @@
         var url = new URL(location.href);
         console.log(url);
         var cql_param = unescape(decodeURI(url.searchParams.get("cql_param")));
-        if (cql_param.length > 5) {
-          lejeri._layers.forEach(function(obj) {
-            obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_param });
-          });
-        }
+        lejeri._layers.forEach(function(obj) {
+          console.log("objekat   " + obj.name);
+          var lejerFilter = unescape(decodeURI(url.searchParams.get(obj.name)));
+          console.log("lejerFilter");
+          console.log(lejerFilter);
+          //TODO: Provjeriti da li mogu filteri da se dodaju sa set params dva puta, da se ne radi konkatenacija
+          if (cql_param.length > 5) {
+            if (lejerFilter !== "null" && lejerFilter !== "") {
+              lejerFilter = " AND (" + lejerFilter + ")";
+              obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_param + lejerFilter });
+              console.log(1);
+              console.log(cql_param + lejerFilter);
+            } else {
+              obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_param });
+              console.log(2);
+              console.log(cql_param);
+            }
+          } else {
+            lejerFilter !== "null" && lejerFilter !== "" && obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: lejerFilter });
+            console.log(3);
+            console.log(lejerFilter);
+          }
+
+          //console.log("obj");
+          //console.log(obj.name);
+        });
+
         var inactive_layers = url.searchParams.get("inactive_layers");
         if (inactive_layers) {
           var arr = inactive_layers.split(",");
@@ -389,14 +417,14 @@
        * Uklanja sve CQL filtere prirdružene lejeru
        */
       function restartovanje() {
-        atribut_text = "";
         //clear search params iz location.href-a
+        //Ovo neće biti potrebno ako se link kopira
         var url = new URL(location.href);
         url.searchParams.set("cql_param", "");
         url.searchParams.set("inactive_layers", "");
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
-            console.log(obj);
+            //console.log(obj);
             //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
             if (lejeri._map.hasLayer(obj.layer)) {
               obj.layer.setParams({ cql_filter: "INCLUDE" }); //'INCLUDE' vrijednost u cql_filteru vrši neku vrstu reseta
@@ -404,7 +432,6 @@
             }
           }
         });
-
         location.href = url.href;
       }
 
@@ -446,14 +473,49 @@
       }
 
       function pretraga() {
-        temp_nivo = "";
-        //atribut_text = "";
         cql_text = "";
 
         if ($("#opstina option:selected").size() === 0 || $("#naponskiNivo option:selected").size() === 0) {
           alert("Potrebno je odabrati bar jednu opštinu i naponski nivo");
           return false;
         }
+
+        //Pozivanje funkcija koje kreiraju tekstove za CQL
+        opstinaCQL();
+        naponskiNivoCQL();
+        poligonCQL();
+        atributCQL();
+        inactiveLayers();
+
+        setTimeout(formirajUrl, 10);
+      }
+
+      function formirajUrl() {
+        temp_opstina !== "" && (cql_text = temp_opstina);
+
+        if (cql_text === "") {
+          temp_nivo !== "" && (cql_text = temp_nivo);
+        } else {
+          temp_nivo !== "" && (cql_text += " AND " + temp_nivo);
+        }
+
+        if (cql_text === "") {
+          temp_poligon !== "" && (cql_text = temp_poligon);
+        } else {
+          temp_poligon !== "" && (cql_text += " AND " + temp_poligon);
+        }
+
+        var url = new URL(location.href);
+        url.searchParams.set("cql_param", encodeURIComponent(cql_text));
+        url.searchParams.set("inactive_layers", encodeURIComponent(inactive_layers));
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            url.searchParams.set(obj.name, encodeURIComponent(cqlLejer[obj.name]));
+            //console.log(url);
+          }
+        });
+        //TODO: ovdje odraditi filtriranje lejera i prikaz url-a
+        setTimeout((location.href = url.href), 10);
       }
 
       // Dio koji se odnosi na rad sa tabelom atributa
