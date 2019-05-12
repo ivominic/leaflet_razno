@@ -39,9 +39,9 @@
       .leaflet-container {
         cursor: help !important;
       }
-      .hidden{
-        display:none;
-        visibility:hidden;
+      .hidden {
+        display: none;
+        visibility: hidden;
       }
       body {
         padding: 0;
@@ -97,7 +97,7 @@
 
           <div>
             <label for="ddlLejer">Odaberite lejer:</label><br />
-            <select id="ddlLejer" class="form-control" >
+            <select id="ddlLejer" class="form-control">
               <option value="jezero">Jezero</option>
               <option value="planinica">Planinica</option>
             </select>
@@ -131,20 +131,18 @@
               Lista
             </button>
 
-
             <table id="tblAtributi" class=" table order-list">
-                <thead>
-                    <tr>
-                        <th>Lejer</th>
-                        <!--<th>LejerValue</th>-->
-                        <th>Atribut</th>
-                        <!--<th>AtributValue</th>-->
-                        <th>Vrijednost</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
+              <thead>
+                <tr>
+                  <th>Lejer</th>
+                  <!--<th>LejerValue</th>-->
+                  <th>Atribut</th>
+                  <!--<th>AtributValue</th>-->
+                  <th>Vrijednost</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
             </table>
           </div>
         </div>
@@ -176,46 +174,63 @@
 
       /*Inicijalni podaci*/
 
-      var mapaLejera = new Map([
-        ['planinica', 'Planinica'],
-        ['jezero', 'Jezero'],
-        ['treci', 'Treci']
-      ]);
+      var mapaLejera = new Map([["planinica", "Planinica"], ["jezero", "Jezero"], ["treci", "Treci"]]);
       /*for (let [k, v] of mapaLejera) {
         console.log("Key: " + k);
         console.log("Value: " + v);
       }*/
 
+      var planinicaAtributi = ["name", "description", "treci"];
+      var jezeroAtributi = ["name", "description", "jezerotest"];
+
+      var atributiDdl = {
+        Planinica: planinicaAtributi,
+        Jezero: jezeroAtributi
+      };
 
       var url = "http://localhost/geoserver/wms";
 
       var osmLayer = L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
 
-      var planinica = L.tileLayer.betterWms(url, {
-        layers: 'winsoft:planinica',
-        transparent: true,
-        format: 'image/png'
-      }).addTo(map);
-      planinica.getContainer().setAttribute('id', 'wmsContainer');
+      var planinica = L.tileLayer
+        .betterWms(url, {
+          layers: "winsoft:planinica",
+          transparent: true,
+          format: "image/png"
+        })
+        .addTo(map);
+      planinica.getContainer().setAttribute("id", "wmsContainer");
 
-      var jezero = L.tileLayer.betterWms(url, {
-        layers: 'winsoft:jezero',
-        transparent: true,
-        format: 'image/png'
-      }).addTo(map);
+      var jezero = L.tileLayer
+        .betterWms(url, {
+          layers: "winsoft:jezero",
+          transparent: true,
+          format: "image/png"
+        })
+        .addTo(map);
 
       var baseMaps = {
         OSM: osmLayer
       };
       var wmsLayers = {
-        "Planinica": planinica,
-        "Jezero": jezero
+        Planinica: planinica,
+        Jezero: jezero
       };
-      console.log(Object.keys(wmsLayers));
+      /*console.log(Object.keys(wmsLayers));
       console.log(Object.values(wmsLayers));
       console.log(Object.entries(wmsLayers));
-      console.log(wmsLayers["Planinica"]);
+      console.log(wmsLayers["Planinica"]);*/
 
+      $("#ddlLejer").on("change", function() {
+        //alert($("#ddlLejer option:selected").text());
+        //alert(this.value);
+        popuniDdlAtributa();
+      });
+
+      var cqlLejer = {
+        Planinica: "",
+        Jezero: ""
+      };
 
       var lejeriZaFiltriranje = wmsLayers;
       var atribut_text = "";
@@ -244,28 +259,51 @@
       map.createPane("new-pane");
       map.on(L.Draw.Event.CREATED, function(e) {
         var type = e.layerType,
-        drawLayer = e.layer;
+          drawLayer = e.layer;
         drawLayer.bindPopup(type);
         drawnItems.addLayer(drawLayer);
         map.addLayer(drawnItems);
       });
 
-      function pozivListaTest(){
-        var tempalrt = listaTest();
+      function pozivListaTest() {
+        var tempalrt = cqlFilterZaLejere();
         //console.log(temp_nivo);
         //alert(temp_nivo);
       }
 
-      function listaTest() {
-        $('#tblAtributi tr').each(function (i, row) {
-        //console.log(i,row.cells[0]);
-        //prikza vrijednosti iz tabele
+      /**
+       * Popunjava drop down listu atributima u zavisnosti od odabranog lejera.
+       */
+      function popuniDdlAtributa() {
+        $("#atribut").empty();
 
-          i > 0 && console.log(i,row.cells[0].innerHTML);
-          i > 0 && console.log(i,row.cells[1].innerHTML);
-          i > 0 && console.log(i,row.cells[2].innerHTML);
-          //TODO: Raspodjela parametara po lejerima
+        $.each(atributiDdl[$("#ddlLejer option:selected").text()], function(index, value) {
+          $("#atribut").append(
+            $("<option>", {
+              value: value,
+              text: value
+            })
+          );
+        });
 
+        //$("#atribut .options").append(atributiDdl[$("#ddlLejer option:selected").text()]);
+      }
+
+      /**
+       * @return {string} Kreira CQL upit za svaki od lejera koji su unešeni u tabelu.
+       */
+      function cqlFilterZaLejere() {
+        $("#tblAtributi tr").each(function(i, row) {
+          //console.log(i,row.cells[0]);
+          if (i > 0) {
+            if (cqlLejer[row.cells[0].innerHTML] === "" || cqlLejer[row.cells[0].innerHTML] === undefined) {
+              cqlLejer[row.cells[0].innerHTML] = row.cells[1].innerHTML + " LIKE '%" + row.cells[2].innerHTML + "%'";
+            } else {
+              cqlLejer[row.cells[0].innerHTML] += " AND " + row.cells[1].innerHTML + " LIKE '%" + row.cells[2].innerHTML + "%'";
+            }
+            //console.log(cqlLejer[row.cells[0].innerHTML]);
+          }
+          //console.log(cqlLejer);
         });
       }
 
@@ -314,7 +352,7 @@
         if (vrijednost.trim() === "" || typeof vrijednost === undefined) {
           alert("Potrebno je unijeti vrijednost atributa");
         } else {
-          AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost)
+          AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost);
           /*if (atribut_text === "") {
             atribut_text = atribut + " LIKE '%" + vrijednost + "%'";
           } else {
@@ -327,6 +365,8 @@
        * Početni filter iz url-a
        */
       function pocetniFilter() {
+        popuniDdlAtributa();
+
         var url = new URL(location.href);
         console.log(url);
         var cql_param = unescape(decodeURI(url.searchParams.get("cql_param")));
@@ -373,15 +413,17 @@
        */
       function opstinaCQL() {
         temp_opstina = "";
-        if($("#opstina option:selected").size() === $("#opstina option").size()){
+        if ($("#opstina option:selected").size() === $("#opstina option").size()) {
           temp_opstina = "";
-        }else{
-          $.each($("#opstina option:selected"), function(){
+        } else {
+          $.each($("#opstina option:selected"), function() {
             temp_opstina += "'" + $(this).val() + "',";
-          }).promise().done(function () {
-            temp_opstina !== "" && (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) && (temp_opstina = "v_opstina IN (" + temp_opstina + ")");
-            //return temp_opstina;
-          });
+          })
+            .promise()
+            .done(function() {
+              temp_opstina !== "" && (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) && (temp_opstina = "v_opstina IN (" + temp_opstina + ")");
+              //return temp_opstina;
+            });
         }
       }
 
@@ -390,14 +432,16 @@
        */
       function naponskiNivoCQL() {
         temp_nivo = "";
-        if($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()){
+        if ($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()) {
           temp_nivo = "";
-        }else{
-          $.each($("#naponskiNivo option:selected"), function(){
+        } else {
+          $.each($("#naponskiNivo option:selected"), function() {
             temp_nivo += "'" + $(this).val() + "',";
-          }).promise().done(function () {
-            temp_nivo !== "" && (temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1)) && (temp_nivo = "v_napon IN (" + temp_nivo + ")");
-          });
+          })
+            .promise()
+            .done(function() {
+              temp_nivo !== "" && (temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1)) && (temp_nivo = "v_napon IN (" + temp_nivo + ")");
+            });
         }
       }
 
@@ -410,45 +454,43 @@
           alert("Potrebno je odabrati bar jednu opštinu i naponski nivo");
           return false;
         }
-
       }
-
 
       // Dio koji se odnosi na rad sa tabelom atributa
       function AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost) {
-          var tBody = $("#tblAtributi > TBODY")[0];
+        var tBody = $("#tblAtributi > TBODY")[0];
 
-          row = tBody.insertRow(-1);
+        row = tBody.insertRow(-1);
 
-          var cell = $(row.insertCell(-1));
-          //cell.html(lejerNaziv);
-          //cell = $(row.insertCell(-1));
-          cell.html(lejerValue);
-          cell = $(row.insertCell(-1));
-          //cell.html(atributNaziv);
-          //cell = $(row.insertCell(-1));
-          cell.html(atributValue);
-          cell = $(row.insertCell(-1));
-          cell.html(vrijednost);
+        var cell = $(row.insertCell(-1));
+        cell.html(lejerNaziv);
+        //cell = $(row.insertCell(-1));
+        //cell.html(lejerValue);
+        cell = $(row.insertCell(-1));
+        //cell.html(atributNaziv);
+        //cell = $(row.insertCell(-1));
+        cell.html(atributValue);
+        cell = $(row.insertCell(-1));
+        cell.html(vrijednost);
 
-          cell = $(row.insertCell(-1));
-          var btnRemove = $("<input />");
-          btnRemove.attr("type", "button");
-          btnRemove.attr("onclick", "RemoveAttribute(this);");
-          btnRemove.val("X");
-          cell.append(btnRemove);
-      };
+        cell = $(row.insertCell(-1));
+        var btnRemove = $("<input />");
+        btnRemove.attr("type", "button");
+        btnRemove.attr("onclick", "RemoveAttribute(this);");
+        btnRemove.val("X");
+        cell.append(btnRemove);
+      }
 
       function RemoveAttribute(button) {
-          var row = $(button).closest("TR");
-          var name = $("TD", row).eq(0).html();
-          //if (confirm("Da li želite da uklonite atribut " +  $("TD", row).eq(1).html() + " za lejer " +  $("TD", row).eq(0).html() + "?")) {
-              var table = $("#tblAtributi")[0];
-              table.deleteRow(row[0].rowIndex);
-          //}
-      };
-
-
+        var row = $(button).closest("TR");
+        var name = $("TD", row)
+          .eq(0)
+          .html();
+        //if (confirm("Da li želite da uklonite atribut " +  $("TD", row).eq(1).html() + " za lejer " +  $("TD", row).eq(0).html() + "?")) {
+        var table = $("#tblAtributi")[0];
+        table.deleteRow(row[0].rowIndex);
+        //}
+      }
     </script>
   </body>
 </html>
