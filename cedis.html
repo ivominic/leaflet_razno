@@ -261,8 +261,14 @@
         map.addLayer(drawnItems);
       });
 
-      function pozivListaTest() {
-        var tempalrt = cqlFilterZaLejere();
+      function pozivDownload() {
+        var nazivLejera = $("#ddlLejer option:selected").text();
+        var cql = wmsLayers[nazivLejera]
+        console.log(cql.wmsParams.cql_filter);
+        console.log(cql.options.layers);
+
+
+        //var tempalrt = cqlFilterZaLejere();
         //console.log(temp_nivo);
         //alert(temp_nivo);
       }
@@ -379,30 +385,18 @@
         console.log(url);
         var cql_param = unescape(decodeURI(url.searchParams.get("cql_param")));
         lejeri._layers.forEach(function(obj) {
-          console.log("objekat   " + obj.name);
           var lejerFilter = unescape(decodeURI(url.searchParams.get(obj.name)));
-          console.log("lejerFilter");
-          console.log(lejerFilter);
           //TODO: Provjeriti da li mogu filteri da se dodaju sa set params dva puta, da se ne radi konkatenacija
           if (cql_param.length > 5) {
             if (lejerFilter !== "null" && lejerFilter !== "") {
               lejerFilter = " AND (" + lejerFilter + ")";
               obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_param + lejerFilter });
-              console.log(1);
-              console.log(cql_param + lejerFilter);
             } else {
               obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_param });
-              console.log(2);
-              console.log(cql_param);
             }
           } else {
             lejerFilter !== "null" && lejerFilter !== "" && obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: lejerFilter });
-            console.log(3);
-            console.log(lejerFilter);
           }
-
-          //console.log("obj");
-          //console.log(obj.name);
         });
 
         var inactive_layers = url.searchParams.get("inactive_layers");
@@ -557,18 +551,39 @@
       }
 
       function eksportKML() {
-        //TODO: Zamijeniti naziv lejera lejerom koji se downloaduje
+
+        var nazivLejera = $("#ddlLejer option:selected").text();
+        var cql = wmsLayers[nazivLejera]
+        var name_type = cql.options.layers;
+        var filter_cql = cql.wmsParams.cql_filter;
+        var defaultParameters;
+        //console.log(cql.wmsParams.cql_filter);
+        (filter_cql === undefined || filter_cql === 'null') && (filter_cql = '');
+
         var owsrootUrl = "http://localhost/geoserver/ows";
-        var defaultParameters = {
-          service: "WFS",
-          version: "2.0",
-          request: "GetFeature",
-          typeName: "winsoft:jezero",
-          outputFormat: "text/javascript",
-          format_options: "callback:getJson",
-          cql_filter: "v_opstina = 'Podgorica'",
-          SrsName: "EPSG:4326"
-        };
+        if(filter_cql === ''){
+          defaultParameters = {
+            service: "WFS",
+            version: "2.0",
+            request: "GetFeature",
+            typeName: name_type,
+            outputFormat: "text/javascript",
+            format_options: "callback:getJson",
+            SrsName: "EPSG:4326"
+          };
+        }else{
+          defaultParameters = {
+            service: "WFS",
+            version: "2.0",
+            request: "GetFeature",
+            typeName: name_type,
+            outputFormat: "text/javascript",
+            format_options: "callback:getJson",
+            cql_filter: filter_cql,
+            SrsName: "EPSG:4326"
+          };
+        }
+
 
         var parameters = L.Util.extend(defaultParameters);
         var URL = owsrootUrl + L.Util.getParamString(parameters);
