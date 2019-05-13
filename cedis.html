@@ -512,6 +512,18 @@
         });
         //TODO: ovdje odraditi filtriranje lejera i prikaz url-a
         setTimeout((location.href = url.href), 10);
+        //setTimeout(copyToClipboard(url.href), 10);
+
+      }
+
+      //Funkcija koja kopira tekst u clipboard
+      function copyToClipboard(text) {
+        var dummy = document.createElement("textarea");
+        document.body.appendChild(dummy);
+        dummy.value = text;
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
       }
 
       // Dio koji se odnosi na rad sa tabelom atributa
