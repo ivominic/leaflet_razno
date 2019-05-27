@@ -112,14 +112,17 @@
               <option value="description">Description</option>
             </select>
           </div>
-          <div class="form-group">
-            <label for="vrijednost">Vrijednost za pretra&#382;ivanje:</label>
-            <input type="text" class="form-control" id="vrijednost" />
+          <div class="form-group input-group">
+            <!--<label for="vrijednost" class="col-12">Vrijednost za pretra&#382;ivanje:</label>-->
+            <input type="text" class="form-control" id="vrijednost"  placeholder="Vrijednost atributa pretrage"/>
+            <div class="input-group-append">
+              <button type="button" class="btn btn-info" id="btnAtribut" onclick="dodajAtribut()">
+                Dodaj atribut
+              </button>
+            </div>
           </div>
           <div class="form-group">
-            <button type="button" class="btn btn-primary" id="btnAtribut" onclick="dodajAtribut()">
-              Dodaj uslov
-            </button>
+
             <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">
               Pretraga
             </button>
@@ -314,18 +317,17 @@
        */
       function atributCQL() {
         //TODO: loše formatira url parametre kad je "%" i prije vrijednosti
+        //kada je isti atribut i lejer spaja vrijednosti uz ";" koji se kasnije mijenja sa OR LIKE dijelom za CQL
         $("#tblAtributi tr").each(function(i, row) {
           //console.log(i,row.cells[0]);
           if (i > 0) {
-            if (cqlLejer[row.cells[0].innerHTML] === "" || cqlLejer[row.cells[0].innerHTML] === undefined) {
-              cqlLejer[row.cells[0].innerHTML] = row.cells[1].innerHTML + " LIKE '" + row.cells[2].innerHTML + "%'";
-            } else {
-              cqlLejer[row.cells[0].innerHTML] += " AND " + row.cells[1].innerHTML + " LIKE '" + row.cells[2].innerHTML + "%'";
-            }
-            //console.log(cqlLejer[row.cells[0].innerHTML]);
+            (cqlLejer[row.cells[0].innerHTML] !== "" && cqlLejer[row.cells[0].innerHTML] !== undefined) && (cqlLejer[row.cells[0].innerHTML] += " AND ")
+            var formatiraniAtribut = String("(" + row.cells[1].innerHTML + " LIKE '%" + row.cells[2].innerHTML + "%')");
+            cqlLejer[row.cells[0].innerHTML] += formatiraniAtribut.replace(/;/g, "%' OR " + row.cells[1].innerHTML + " LIKE '%");
           }
-          //console.log(cqlLejer);
         });
+        console.log("test atributa");
+        console.log(cqlLejer);
       }
 
       /**
@@ -420,6 +422,11 @@
         var url = new URL(location.href);
         url.searchParams.set("cql_param", "");
         url.searchParams.set("inactive_layers", "");
+        //Uklanjanje svih filtera za pojedinačne lejere
+        for (var key in cqlLejer) {
+          cqlLejer[key]="";
+        }
+
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
             //console.log(obj);
@@ -508,6 +515,7 @@
         url.searchParams.set("inactive_layers", encodeURIComponent(inactive_layers));
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
+            (cqlLejer[obj.name].length > 0) && (cqlLejer[obj.name] = "(" + cqlLejer[obj.name] + ")");
             url.searchParams.set(obj.name, encodeURIComponent(cqlLejer[obj.name]));
             //console.log(url);
           }
@@ -532,25 +540,33 @@
       function AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost) {
         var tBody = $("#tblAtributi > TBODY")[0];
 
-        row = tBody.insertRow(-1);
+        var noviAtribut = true
+        $("#tblAtributi tr").each(function(i, row) {
+          if (i > 0) {
+            if(row.cells[0].innerHTML == lejerNaziv && row.cells[1].innerHTML == atributValue){
+              row.cells[2].innerHTML = row.cells[2].innerHTML + ";" + vrijednost;
+              noviAtribut = false;
+            }
+          }
+        });
 
-        var cell = $(row.insertCell(-1));
-        cell.html(lejerNaziv);
-        //cell = $(row.insertCell(-1));
-        //cell.html(lejerValue);
-        cell = $(row.insertCell(-1));
-        //cell.html(atributNaziv);
-        //cell = $(row.insertCell(-1));
-        cell.html(atributValue);
-        cell = $(row.insertCell(-1));
-        cell.html(vrijednost);
+        if(noviAtribut){
+          row = tBody.insertRow(-1);
 
-        cell = $(row.insertCell(-1));
-        var btnRemove = $("<input />");
-        btnRemove.attr("type", "button");
-        btnRemove.attr("onclick", "RemoveAttribute(this);");
-        btnRemove.val("X");
-        cell.append(btnRemove);
+          var cell = $(row.insertCell(-1));
+          cell.html(lejerNaziv);
+          cell = $(row.insertCell(-1));
+          cell.html(atributValue);
+          cell = $(row.insertCell(-1));
+          cell.html(vrijednost);
+
+          cell = $(row.insertCell(-1));
+          var btnRemove = $("<input />");
+          btnRemove.attr("type", "button");
+          btnRemove.attr("onclick", "RemoveAttribute(this);");
+          btnRemove.val("X");
+          cell.append(btnRemove);
+        }
       }
 
       function RemoveAttribute(button) {
