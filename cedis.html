@@ -87,7 +87,7 @@
           </div>
 
           <div>
-            <label for="naponskiNivo">Odaberite naponski nivo:</label><br />
+            <label for="naponskiNivo">Odaberite naponski nivo:</label>
             <select id="naponskiNivo" multiple="multiple">
               <option value="0.4 kV" selected="selected">0.4 kv</option>
               <option value="10 kV" selected="selected">10 kv</option>
@@ -97,7 +97,10 @@
               <option value="OPGW" selected="selected">OPGW</option>
             </select>
           </div>
-
+          <div>
+            <label for="vod">Naziv voda:</label>
+            <input type="text" class="form-control" id="vod" placeholder="Naziv voda" />
+          </div>
           <div>
             <label for="ddlLejer">Odaberite lejer:</label><br />
             <select id="ddlLejer" class="form-control">
@@ -115,7 +118,7 @@
           </div>
           <div class="form-group input-group">
             <!--<label for="vrijednost" class="col-12">Vrijednost za pretra&#382;ivanje:</label>-->
-            <input type="text" class="form-control" id="vrijednost"  placeholder="Vrijednost atributa pretrage"/>
+            <input type="text" class="form-control" id="vrijednost" placeholder="Vrijednost atributa pretrage" />
             <div class="input-group-append">
               <button type="button" class="btn btn-info" id="btnAtribut" onclick="dodajAtribut()">
                 Dodaj atribut
@@ -123,16 +126,10 @@
             </div>
           </div>
           <div class="form-group">
-
-            <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">
-              Pretraga
-            </button>
-            <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">
-              Restart
-            </button>
-            <button type="button" class="btn btn-info" id="btnLista" onclick="eksportKML()">
-              KML
-            </button>
+            <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">Pretraga</button>
+            <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">Restart</button>
+            <button type="button" class="btn btn-info" id="btnLista" onclick="eksportKML()">KML</button>
+            <button type="button" class="btn btn-info" id="btnTest" onclick="vodCQL()">Test</button>
 
             <table id="tblAtributi" class=" table order-list">
               <thead>
@@ -235,12 +232,13 @@
         Jezero: ""
       };
 
-      var lejeriZaFiltriranje = wmsLayers;
-      var temp_opstina = "";
-      var temp_nivo = "";
-      var temp_poligon = "";
-      var inactive_layers = "";
-      var drawLayer;
+      var lejeriZaFiltriranje = wmsLayers,
+        temp_opstina = "",
+        temp_nivo = "",
+        temp_vod = "",
+        temp_poligon = "",
+        inactive_layers = "",
+        drawLayer;
 
       //Hash link
       var hash = new L.Hash(map);
@@ -269,10 +267,9 @@
 
       function pozivDownload() {
         var nazivLejera = $("#ddlLejer option:selected").text();
-        var cql = wmsLayers[nazivLejera]
+        var cql = wmsLayers[nazivLejera];
         console.log(cql.wmsParams.cql_filter);
         console.log(cql.options.layers);
-
 
         //var tempalrt = cqlFilterZaLejere();
         //console.log(temp_nivo);
@@ -322,7 +319,7 @@
         $("#tblAtributi tr").each(function(i, row) {
           //console.log(i,row.cells[0]);
           if (i > 0) {
-            (cqlLejer[row.cells[0].innerHTML] !== "" && cqlLejer[row.cells[0].innerHTML] !== undefined) && (cqlLejer[row.cells[0].innerHTML] += " AND ")
+            cqlLejer[row.cells[0].innerHTML] !== "" && cqlLejer[row.cells[0].innerHTML] !== undefined && (cqlLejer[row.cells[0].innerHTML] += " AND ");
             var formatiraniAtribut = String("(" + row.cells[1].innerHTML + " LIKE '%" + row.cells[2].innerHTML + "%')");
             cqlLejer[row.cells[0].innerHTML] += formatiraniAtribut.replace(/;/g, "%' OR " + row.cells[1].innerHTML + " LIKE '%");
           }
@@ -423,7 +420,7 @@
         url.searchParams.set("inactive_layers", "");
         //Uklanjanje svih filtera za pojedinačne lejere
         for (var key in cqlLejer) {
-          cqlLejer[key]="";
+          cqlLejer[key] = "";
         }
 
         lejeri._layers.forEach(function(obj) {
@@ -452,7 +449,9 @@
           })
             .promise()
             .done(function() {
-              temp_opstina !== "" && (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) && (temp_opstina = "v_opstina IN (" + temp_opstina + ")");
+              temp_opstina !== "" &&
+                (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) &&
+                (temp_opstina = "v_opstina IN (" + temp_opstina + ")");
               //return temp_opstina;
             });
         }
@@ -476,6 +475,27 @@
         }
       }
 
+      /**
+       * @return {string} Kreira CQL upit za prikaz samo onih objekata koji pripadaju odabranim vodovima.
+       */
+      function vodCQL() {
+        var vrijednost = $("#vod")
+          .val()
+          .trim();
+        var nizVrijednosti;
+        temp_vod = "";
+        vrijednost !== "" && (nizVrijednosti = vrijednost.split(","));
+        //if ($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()) {
+        if (vrijednost.trim() === "") {
+          temp_vod = "";
+        } else {
+          nizVrijednosti.forEach(function(value, index, array) {
+            String(value).trim() !== "" && (temp_vod += "'" + String(value).trim() + "',");
+          });
+          temp_vod !== "" && (temp_vod = temp_vod.substring(0, temp_vod.length - 1)) && (temp_vod = "vod_naziv IN (" + temp_vod + ")");
+        }
+      }
+
       function pretraga() {
         cql_text = "";
 
@@ -487,6 +507,7 @@
         //Pozivanje funkcija koje kreiraju tekstove za CQL
         opstinaCQL();
         naponskiNivoCQL();
+        vodCQL();
         poligonCQL();
         atributCQL();
         inactiveLayers();
@@ -495,26 +516,24 @@
       }
 
       function formirajUrl() {
+        //TODO: Zamijeniti dio sa opštinom jer će to ići kroz poligone
         temp_opstina !== "" && (cql_text = temp_opstina);
 
-        if (cql_text === "") {
-          temp_nivo !== "" && (cql_text = temp_nivo);
-        } else {
-          temp_nivo !== "" && (cql_text += " AND " + temp_nivo);
-        }
+        cql_text !== "" && (cql_text += " AND ");
+        temp_nivo !== "" && (cql_text = temp_nivo);
 
-        if (cql_text === "") {
-          temp_poligon !== "" && (cql_text = temp_poligon);
-        } else {
-          temp_poligon !== "" && (cql_text += " AND " + temp_poligon);
-        }
+        cql_text !== "" && (cql_text += " AND ");
+        temp_vod !== "" && (cql_text = temp_vod);
+
+        cql_text !== "" && (cql_text += " AND ");
+        temp_poligon !== "" && (cql_text = temp_poligon);
 
         var url = new URL(location.href);
         url.searchParams.set("cql_param", encodeURIComponent(cql_text));
         url.searchParams.set("inactive_layers", encodeURIComponent(inactive_layers));
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
-            (cqlLejer[obj.name].length > 0) && (cqlLejer[obj.name] = "(" + cqlLejer[obj.name] + ")");
+            cqlLejer[obj.name].length > 0 && (cqlLejer[obj.name] = "(" + cqlLejer[obj.name] + ")");
             url.searchParams.set(obj.name, encodeURIComponent(cqlLejer[obj.name]));
             //console.log(url);
           }
@@ -522,7 +541,6 @@
         //TODO: ovdje odraditi filtriranje lejera i prikaz url-a
         setTimeout((location.href = url.href), 10);
         //setTimeout(copyToClipboard(url.href), 10);
-
       }
 
       //Funkcija koja kopira tekst u clipboard
@@ -539,17 +557,17 @@
       function AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost) {
         var tBody = $("#tblAtributi > TBODY")[0];
 
-        var noviAtribut = true
+        var noviAtribut = true;
         $("#tblAtributi tr").each(function(i, row) {
           if (i > 0) {
-            if(row.cells[0].innerHTML == lejerNaziv && row.cells[1].innerHTML == atributValue){
+            if (row.cells[0].innerHTML == lejerNaziv && row.cells[1].innerHTML == atributValue) {
               row.cells[2].innerHTML = row.cells[2].innerHTML + ";" + vrijednost;
               noviAtribut = false;
             }
           }
         });
 
-        if(noviAtribut){
+        if (noviAtribut) {
           row = tBody.insertRow(-1);
 
           var cell = $(row.insertCell(-1));
@@ -580,17 +598,16 @@
       }
 
       function eksportKML() {
-
         var nazivLejera = $("#ddlLejer option:selected").text();
-        var cql = wmsLayers[nazivLejera]
+        var cql = wmsLayers[nazivLejera];
         var name_type = cql.options.layers;
         var filter_cql = cql.wmsParams.cql_filter;
         var defaultParameters;
         //console.log(cql.wmsParams.cql_filter);
-        (filter_cql === undefined || filter_cql === 'null') && (filter_cql = '');
+        (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
 
         var owsrootUrl = "http://localhost/geoserver/ows";
-        if(filter_cql === ''){
+        if (filter_cql === "") {
           defaultParameters = {
             service: "WFS",
             version: "2.0",
@@ -600,7 +617,7 @@
             format_options: "callback:getJson",
             SrsName: "EPSG:4326"
           };
-        }else{
+        } else {
           defaultParameters = {
             service: "WFS",
             version: "2.0",
@@ -612,7 +629,6 @@
             SrsName: "EPSG:4326"
           };
         }
-
 
         var parameters = L.Util.extend(defaultParameters);
         var URL = owsrootUrl + L.Util.getParamString(parameters);
