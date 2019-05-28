@@ -50,6 +50,12 @@
         padding: 0;
         margin: 0;
       }
+      .btn-sm {
+        height: 18px;
+        padding: 0px 3px;
+        font-size: 12px;
+        border-radius: 3px;
+      }
     </style>
   </head>
   <body>
@@ -129,9 +135,9 @@
             <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">Pretraga</button>
             <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">Restart</button>
             <button type="button" class="btn btn-info" id="btnLista" onclick="eksportKML()">KML</button>
-            <button type="button" class="btn btn-info" id="btnTest" onclick="vodCQL()">Test</button>
+            <button type="button" class="btn btn-info" id="btnKopiranjeLinka" onclick="copyToClipboard(url_copy)">Link</button>
 
-            <table id="tblAtributi" class=" table order-list">
+            <table id="tblAtributi" class=" table order-list table-responsive">
               <thead>
                 <tr>
                   <th>Lejer</th>
@@ -238,6 +244,7 @@
         temp_vod = "",
         temp_poligon = "",
         inactive_layers = "",
+        url_copy = "",
         drawLayer;
 
       //Hash link
@@ -268,8 +275,8 @@
       function pozivDownload() {
         var nazivLejera = $("#ddlLejer option:selected").text();
         var cql = wmsLayers[nazivLejera];
-        console.log(cql.wmsParams.cql_filter);
-        console.log(cql.options.layers);
+        //console.log(cql.wmsParams.cql_filter);
+        //console.log(cql.options.layers);
 
         //var tempalrt = cqlFilterZaLejere();
         //console.log(temp_nivo);
@@ -384,6 +391,7 @@
         var url = new URL(location.href);
         console.log(url);
         var cql_param = unescape(decodeURI(url.searchParams.get("cql_param")));
+        console.log(cql_param);
         lejeri._layers.forEach(function(obj) {
           var lejerFilter = unescape(decodeURI(url.searchParams.get(obj.name)));
           //TODO: Provjeriti da li mogu filteri da se dodaju sa set params dva puta, da se ne radi konkatenacija
@@ -418,6 +426,7 @@
         var url = new URL(location.href);
         url.searchParams.set("cql_param", "");
         url.searchParams.set("inactive_layers", "");
+        url_copy = "";
         //Uklanjanje svih filtera za pojedinačne lejere
         for (var key in cqlLejer) {
           cqlLejer[key] = "";
@@ -519,14 +528,14 @@
         //TODO: Zamijeniti dio sa opštinom jer će to ići kroz poligone
         temp_opstina !== "" && (cql_text = temp_opstina);
 
-        cql_text !== "" && (cql_text += " AND ");
-        temp_nivo !== "" && (cql_text = temp_nivo);
+        cql_text !== "" && temp_nivo !== "" && (cql_text += " AND ");
+        temp_nivo !== "" && (cql_text += temp_nivo);
 
-        cql_text !== "" && (cql_text += " AND ");
-        temp_vod !== "" && (cql_text = temp_vod);
+        cql_text !== "" && temp_vod !== "" && (cql_text += " AND ");
+        temp_vod !== "" && (cql_text += temp_vod);
 
-        cql_text !== "" && (cql_text += " AND ");
-        temp_poligon !== "" && (cql_text = temp_poligon);
+        cql_text !== "" && temp_poligon !== "" && (cql_text += " AND ");
+        temp_poligon !== "" && (cql_text += temp_poligon);
 
         var url = new URL(location.href);
         url.searchParams.set("cql_param", encodeURIComponent(cql_text));
@@ -536,11 +545,14 @@
             cqlLejer[obj.name].length > 0 && (cqlLejer[obj.name] = "(" + cqlLejer[obj.name] + ")");
             url.searchParams.set(obj.name, encodeURIComponent(cqlLejer[obj.name]));
             //console.log(url);
+            cql_text !== "" && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_text });
+            cqlLejer[obj.name] !== "" && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cqlLejer[obj.name] });
           }
         });
         //TODO: ovdje odraditi filtriranje lejera i prikaz url-a
-        setTimeout((location.href = url.href), 10);
-        //setTimeout(copyToClipboard(url.href), 10);
+        url_copy = url.href;
+        //setTimeout((location.href = url.href), 10);
+        //copyToClipboard(url_copy);
       }
 
       //Funkcija koja kopira tekst u clipboard
@@ -551,6 +563,11 @@
         dummy.select();
         document.execCommand("copy");
         document.body.removeChild(dummy);
+        if (text.trim() === "") {
+          alert("Potrebno je kreirati filter.");
+        } else {
+          alert("Link je uspješno kopiran.");
+        }
       }
 
       // Dio koji se odnosi na rad sa tabelom atributa
@@ -580,6 +597,7 @@
           cell = $(row.insertCell(-1));
           var btnRemove = $("<input />");
           btnRemove.attr("type", "button");
+          btnRemove.attr("class", "btn btn-danger btn-sm");
           btnRemove.attr("onclick", "RemoveAttribute(this);");
           btnRemove.val("X");
           cell.append(btnRemove);
