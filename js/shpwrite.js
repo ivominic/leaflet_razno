@@ -17400,8 +17400,9 @@ function hasOwnProperty(obj, prop) {
 var zip = require('./zip');
 
 module.exports = function(gj, options) {
-    var content = zip(gj, options);
+  zip(gj, options).then(function(content) {
     location.href = 'data:application/zip;base64,' + content;
+  });
 };
 
 },{"./zip":117}],109:[function(require,module,exports){
@@ -17787,13 +17788,13 @@ module.exports = function(gj, options) {
         }
     });
 
-    var generateOptions = { compression:'STORE' };
+    var generateOptions = { compression:'STORE', type:'base64' };
 
     if (!process.browser) {
       generateOptions.type = 'nodebuffer';
     }
 
-    return zip.generate(generateOptions);
+    return zip.generateAsync(generateOptions);
 };
 
 }).call(this,require('_process'))
