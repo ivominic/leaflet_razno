@@ -25,6 +25,7 @@
     <script src="js/tokml.js"></script>
     <script src="js/FileSaver.js"></script>
     <script src="js/opstine.js"></script>
+    <script src="js/shpwrite.js"></script>
     <style type="text/css">
       html,
       body,
@@ -151,6 +152,7 @@
             <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">Pretraga</button>
             <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">Restart</button>
             <button type="button" class="btn btn-info" id="btnLista" onclick="eksportKML()">KML</button>
+            <button type="button" class="btn btn-info" id="btnLista" onclick="shpDownload()">SHP</button>
             <button type="button" class="btn btn-info" id="btnKopiranjeLinka" onclick="copyToClipboard(url_copy)">Link</button>
 
             <table id="tblAtributi" class=" table order-list table-responsive">
@@ -725,6 +727,49 @@
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
+      }
+
+      function shpDownload() {
+        //var shpwrite = require("shp-write");
+
+        // (optional) set names for feature types and zipped folder
+        var options = {
+          folder: "myshapes",
+          types: {
+            point: "mypoints",
+            polygon: "mypolygons",
+            line: "mylines"
+          }
+        };
+        // a GeoJSON bridge for features
+        shpwrite.download(
+          {
+            type: "FeatureCollection",
+            features: [
+              {
+                type: "Feature",
+                geometry: {
+                  type: "Point",
+                  coordinates: [0, 0]
+                },
+                properties: {
+                  name: "Foo"
+                }
+              },
+              {
+                type: "Feature",
+                geometry: {
+                  type: "Point",
+                  coordinates: [0, 10]
+                },
+                properties: {
+                  name: "Bar"
+                }
+              }
+            ]
+          },
+          options
+        );
       }
     </script>
   </body>
