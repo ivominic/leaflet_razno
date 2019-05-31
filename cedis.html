@@ -153,6 +153,7 @@
             <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">Restart</button>
             <button type="button" class="btn btn-info" id="btnLista" onclick="eksportKML()">KML</button>
             <button type="button" class="btn btn-info" id="btnLista" onclick="shpDownload()">SHP</button>
+            <button type="button" class="btn btn-info" id="btnLista" onclick="csvDownload()">CSV</button>
             <button type="button" class="btn btn-info" id="btnKopiranjeLinka" onclick="copyToClipboard(url_copy)">Link</button>
 
             <table id="tblAtributi" class=" table order-list table-responsive">
@@ -724,19 +725,18 @@
 
       function shpDownload() {
         // (optional) set names for feature types and zipped folder
-        var options = {
-          folder: "myshapes12",
-          types: {
-            point: "mypoints",
-            polygon: "mypolygons",
-            line: "mylines"
-          }
-        };
-
         var wfsExport = {};
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
             if (lejeri._map.hasLayer(obj.layer)) {
+              var shpOptions = {
+                folder: obj.name,
+                types: {
+                  point: "points-" + obj.name,
+                  polygon: "polygons" + obj.name,
+                  line: "lines" + obj.name
+                }
+              };
               var nazivLejera = obj.name;
               var cql = wmsLayers[nazivLejera];
               var name_type = cql.options.layers;
@@ -779,11 +779,10 @@
                 dataType: "jsonp",
                 jsonpCallback: "getJson",
                 success: function(response) {
-                  //wfsExport[obj.name] = L.geoJson(response, {
                   var fajl = L.geoJson(response).toGeoJSON();
-                  fajl = fajl.replace(/MultiPoint/g, "Point");
+                  //fajl = fajl.replace(/MultiPoint/g, "Point");
                   console.log(fajl);
-                  shpwrite.download(fajl, options);
+                  shpwrite.download(fajl, shpOptions);
                   WFSLayer = L.geoJson(response, {
                     style: function(feature) {},
                     onEachFeature: function(feature, layer) {
@@ -800,36 +799,131 @@
             }
           }
         });
+      }
 
-        // a GeoJSON bridge for features
-        /*shpwrite.download(
-          {
-            type: "FeatureCollection",
-            features: [
-              {
-                type: "Feature",
-                geometry: {
-                  type: "Point",
-                  coordinates: [0, 0]
-                },
-                properties: {
-                  name: "Foo"
-                }
-              },
-              {
-                type: "Feature",
-                geometry: {
-                  type: "Point",
-                  coordinates: [0, 10]
-                },
-                properties: {
-                  name: "Bar"
-                }
+      function DownloadJsonData(JSONData, FileTitle, ShowLabel) {
+        //If JSONData is not an object then JSON.parse will parse the JSON string in an Object
+        var arrData = typeof JSONData.features != "object" ? JSON.parse(JSONData.features) : JSONData.features;
+        var CSV = "";
+        //This condition will generate the Label/Header
+        if (ShowLabel) {
+          var row = "";
+          console.log(arrData[0]);
+          //This loop will extract the label from 1st index of on array
+          for (var index in arrData[0]) {
+            //Now convert each value to string and comma-seprated
+            row += index + ",";
+          }
+          row = row.slice(0, -1);
+          //append Label row with line break
+          CSV += row + "\r\n";
+        }
+        //1st loop is to extract each row
+        for (var i = 0; i < arrData.length; i++) {
+          var row = arrData[i].geometry.type + ",";
+          for (var index in arrData[i].geometry.coordinates) {
+            row += '"' + arrData[i].geometry.coordinates[index] + '",';
+          }
+          //2nd loop will extract each column and convert it in string comma-seprated
+          for (var index in arrData[i].properties) {
+            row += '"' + arrData[i].properties[index] + '",';
+            console.log(row);
+          }
+          row.slice(0, row.length - 1);
+          //add a line break after each row
+          CSV += row + "\r\n";
+        }
+        if (CSV == "") {
+          alert("Invalid data");
+          return;
+        }
+        //Generate a file name
+        var filename = FileTitle + new Date();
+        var blob = new Blob([CSV], {
+          type: "text/csv;charset=utf-8;"
+        });
+        if (navigator.msSaveBlob) {
+          // IE 10+
+          navigator.msSaveBlob(blob, filename);
+        } else {
+          var link = document.createElement("a");
+          if (link.download !== undefined) {
+            // feature detection
+            // Browsers that support HTML5 download attribute
+            var url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.style = "visibility:hidden";
+            link.download = filename + ".csv";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        }
+      }
+
+      function csvDownload() {
+        // (optional) set names for feature types and zipped folder
+        var wfsExport = {};
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            if (lejeri._map.hasLayer(obj.layer)) {
+              var nazivLejera = obj.name;
+              var cql = wmsLayers[nazivLejera];
+              var name_type = cql.options.layers;
+              var filter_cql = cql.wmsParams.cql_filter;
+              var defaultParameters;
+              //console.log(cql.wmsParams.cql_filter);
+              (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
+
+              var owsrootUrl = "http://localhost/geoserver/ows";
+              if (filter_cql === "") {
+                defaultParameters = {
+                  service: "WFS",
+                  version: "2.0",
+                  request: "GetFeature",
+                  typeName: name_type,
+                  outputFormat: "text/javascript",
+                  format_options: "callback:getJson",
+                  SrsName: "EPSG:4326"
+                };
+              } else {
+                defaultParameters = {
+                  service: "WFS",
+                  version: "2.0",
+                  request: "GetFeature",
+                  typeName: name_type,
+                  outputFormat: "text/javascript",
+                  format_options: "callback:getJson",
+                  cql_filter: filter_cql,
+                  SrsName: "EPSG:4326"
+                };
               }
-            ]
-          },
-          options
-        );*/
+
+              var parameters = L.Util.extend(defaultParameters);
+              var URL = owsrootUrl + L.Util.getParamString(parameters);
+              var WFSLayer = null;
+              var ajax = $.ajax({
+                url: URL,
+                dataType: "jsonp",
+                jsonpCallback: "getJson",
+                success: function(response) {
+                  var fajl = L.geoJson(response).toGeoJSON();
+                  DownloadJsonData(fajl, "csv", true);
+                  WFSLayer = L.geoJson(response, {
+                    style: function(feature) {},
+                    onEachFeature: function(feature, layer) {
+                      //popupOptions = {maxWidth: 200};
+                      //layer.bindPopup("Popup text, access attributes with feature.properties.ATTRIBUTE_NAME", popupOptions);
+                    }
+                  }).addTo(map);
+
+                  //shpwrite.download(WFSLayer.toGeoJSON(), options);
+                  //saveToFile(WFSLayer.toGeoJSON(), obj.name);
+                }
+              });
+            }
+          }
+        });
       }
     </script>
   </body>

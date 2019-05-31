@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <title>Document</title>
+  </head>
+  <body>
+    <h1 clas="flex">Please Click on a Button of requested Data</h1>
+    <div class="flex">
+      <button id="button1" class="button"><span>Click Me </span></button>
+    </div>
+  </body>
+  <script>
+    $(document).ready(function() {
+      $("#button1").on("click", function(e) {
+        var url = "https://jsonplaceholder.typicode.com/todos/1";
+        $.ajax({
+          type: "GET",
+          url: url,
+          success: function(result) {
+            console.log(result);
+            DownloadJsonData(
+              {
+                type: "FeatureCollection",
+                features: [
+                  {
+                    type: "Feature",
+                    geometry: {
+                      type: "Point",
+                      coordinates: [0, 0]
+                    },
+                    properties: {
+                      name: "Foo"
+                    }
+                  },
+                  {
+                    type: "Feature",
+                    geometry: {
+                      type: "Point",
+                      coordinates: [0, 10]
+                    },
+                    properties: {
+                      name: "Bar"
+                    }
+                  }
+                ]
+              },
+              "NewFile",
+              true
+            );
+            //DownloadJsonData(result, "NewFile", true);
+          },
+          error: function(result) {
+            alert("Error ");
+          }
+        });
+      });
+    });
+  </script>
+</html>

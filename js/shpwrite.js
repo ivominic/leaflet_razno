@@ -17463,6 +17463,7 @@ function obj(_) {
 
 },{"./types":115}],111:[function(require,module,exports){
 module.exports.point = justType('Point', 'POINT');
+module.exports.point = justType('MultiPoint', 'POINT');
 module.exports.line = justType('LineString', 'POLYLINE');
 module.exports.polygon = justType('Polygon', 'POLYGON');
 
@@ -17483,7 +17484,13 @@ function justCoords(t) {
         t.geometry.coordinates[0][0][0] !== undefined) {
         return t.geometry.coordinates[0];
     } else {
-        return t.geometry.coordinates;
+      //Ivo 30.05.2019. Dodao ovaj dio jer je geometrija stubova multipoint a ne point i onda treba uzeti drugi nivo koordinata da bi se dobila koordinata tačke
+      if (t.geometry.coordinates[0] !== undefined &&
+        t.geometry.coordinates[0][0] !== undefined){
+          return t.geometry.coordinates[0];
+        }else{
+          return t.geometry.coordinates;
+        }
     }
 }
 
