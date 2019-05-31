@@ -632,60 +632,79 @@
       }
 
       function eksportKML() {
-        var nazivLejera = $("#ddlLejer option:selected").text();
-        var cql = wmsLayers[nazivLejera];
-        var name_type = cql.options.layers;
-        var filter_cql = cql.wmsParams.cql_filter;
-        var defaultParameters;
-        //console.log(cql.wmsParams.cql_filter);
-        (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
+        var wfsExport = {};
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            if (lejeri._map.hasLayer(obj.layer)) {
+              var nazivLejera = obj.name;
+              var cql = wmsLayers[nazivLejera];
+              var name_type = cql.options.layers;
+              var filter_cql = cql.wmsParams.cql_filter;
+              var defaultParameters;
+              //console.log(cql.wmsParams.cql_filter);
+              (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
 
-        var owsrootUrl = "http://localhost/geoserver/ows";
-        if (filter_cql === "") {
-          defaultParameters = {
-            service: "WFS",
-            version: "2.0",
-            request: "GetFeature",
-            typeName: name_type,
-            outputFormat: "text/javascript",
-            format_options: "callback:getJson",
-            SrsName: "EPSG:4326"
-          };
-        } else {
-          defaultParameters = {
-            service: "WFS",
-            version: "2.0",
-            request: "GetFeature",
-            typeName: name_type,
-            outputFormat: "text/javascript",
-            format_options: "callback:getJson",
-            cql_filter: filter_cql,
-            SrsName: "EPSG:4326"
-          };
-        }
-
-        var parameters = L.Util.extend(defaultParameters);
-        var URL = owsrootUrl + L.Util.getParamString(parameters);
-        var WFSLayer = null;
-        var ajax = $.ajax({
-          url: URL,
-          dataType: "jsonp",
-          jsonpCallback: "getJson",
-          success: function(response) {
-            WFSLayer = L.geoJson(response, {
-              style: function(feature) {
-                return {
-                  stroke: false,
-                  fillColor: "FFFFFF",
-                  fillOpacity: 0
+              var owsrootUrl = "http://localhost/geoserver/ows";
+              if (filter_cql === "") {
+                defaultParameters = {
+                  service: "WFS",
+                  version: "2.0",
+                  request: "GetFeature",
+                  typeName: name_type,
+                  outputFormat: "text/javascript",
+                  format_options: "callback:getJson",
+                  SrsName: "EPSG:4326"
                 };
-              },
-              onEachFeature: function(feature, layer) {
-                //popupOptions = {maxWidth: 200};
-                //layer.bindPopup("Popup text, access attributes with feature.properties.ATTRIBUTE_NAME", popupOptions);
+              } else {
+                defaultParameters = {
+                  service: "WFS",
+                  version: "2.0",
+                  request: "GetFeature",
+                  typeName: name_type,
+                  outputFormat: "text/javascript",
+                  format_options: "callback:getJson",
+                  cql_filter: filter_cql,
+                  SrsName: "EPSG:4326"
+                };
               }
-            }).addTo(map);
-            saveToFile(WFSLayer.toGeoJSON(), "testKML");
+
+              var parameters = L.Util.extend(defaultParameters);
+              var URL = owsrootUrl + L.Util.getParamString(parameters);
+              console.log(obj.name);
+              console.log(URL);
+              var WFSLayer = null;
+              var ajax = $.ajax({
+                url: URL,
+                dataType: "jsonp",
+                jsonpCallback: "getJson",
+                success: function(response) {
+                  //wfsExport[obj.name] = L.geoJson(response, {
+                  WFSLayer = L.geoJson(response, {
+                    style: function(feature) {
+                      return {
+                        stroke: false,
+                        fillColor: "FFFFFF",
+                        fillOpacity: 0
+                      };
+                    },
+                    onEachFeature: function(feature, layer) {
+                      //popupOptions = {maxWidth: 200};
+                      //layer.bindPopup("Popup text, access attributes with feature.properties.ATTRIBUTE_NAME", popupOptions);
+                    }
+                  }).addTo(map);
+                  //console.log(wfsExport);
+                  console.log(WFSLayer);
+                  //saveToFile(WFSLayer.toGeoJSON(), obj.name);
+                }
+              });
+            }
+          }
+        });
+
+        setTimeout(3000, function() {
+          console.log(wfsExport);
+          for (var key in wfsExport) {
+            console.log(key, wfsExport[key]);
           }
         });
       }
