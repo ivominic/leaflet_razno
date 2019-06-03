@@ -257,6 +257,70 @@
         Jezero: ""
       };
 
+      //Kontrole za download
+      var kmlControl = L.Control.extend({
+        options: {
+          position: "bottomright"
+          //control position - allowed: 'topleft', 'topright', 'bottomleft', 'bottomright'
+        },
+        onAdd: function(map) {
+          var container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
+          container.innerHTML = "KML";
+          container.style.backgroundColor = "white";
+          container.style.width = "30px";
+          container.style.height = "30px";
+
+          container.onclick = function(event) {
+            eksportKML();
+            event.stopPropagation();
+          };
+          return container;
+        }
+      });
+      map.addControl(new kmlControl());
+
+      var shpControl = L.Control.extend({
+        options: {
+          position: "bottomright"
+          //control position - allowed: 'topleft', 'topright', 'bottomleft', 'bottomright'
+        },
+        onAdd: function(map) {
+          var container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
+          container.innerHTML = "SHP";
+          container.style.backgroundColor = "white";
+          container.style.width = "30px";
+          container.style.height = "30px";
+
+          container.onclick = function(event) {
+            shpDownload();
+            event.stopPropagation();
+          };
+          return container;
+        }
+      });
+      map.addControl(new shpControl());
+
+      var csvControl = L.Control.extend({
+        options: {
+          position: "bottomright"
+          //control position - allowed: 'topleft', 'topright', 'bottomleft', 'bottomright'
+        },
+        onAdd: function(map) {
+          var container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
+          container.innerHTML = "CSV";
+          container.style.backgroundColor = "white";
+          container.style.width = "30px";
+          container.style.height = "30px";
+
+          container.onclick = function(event) {
+            csvDownload();
+            event.stopPropagation();
+          };
+          return container;
+        }
+      });
+      map.addControl(new csvControl());
+
       var lejeriZaFiltriranje = wmsLayers,
         temp_opstina = "",
         temp_nivo = "",
@@ -697,7 +761,7 @@
                   }).addTo(map);
                   //console.log(wfsExport);
                   console.log(WFSLayer);
-                  //saveToFile(WFSLayer.toGeoJSON(), obj.name);
+                  saveToFile(WFSLayer.toGeoJSON(), obj.name);
                 }
               });
             }
@@ -792,7 +856,7 @@
                   }).addTo(map);
                   //console.log(wfsExport);
                   console.log(WFSLayer);
-                  //shpwrite.download(WFSLayer.toGeoJSON(), options);
+                  shpwrite.download(WFSLayer.toGeoJSON(), options);
                   //saveToFile(WFSLayer.toGeoJSON(), obj.name);
                 }
               });
