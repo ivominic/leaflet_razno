@@ -915,11 +915,16 @@
         //}
       }
 
+      function timer(ms) {
+        return new Promise(res => setTimeout(res, ms));
+      }
+
       function eksportKML() {
         var wfsExport = {};
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
             if (lejeri._map.hasLayer(obj.layer)) {
+              timer(3000);
               var nazivLejera = obj.name;
               var cql = wmsLayers[nazivLejera];
               var name_type = cql.options.layers;
@@ -956,31 +961,31 @@
               var URL = owsrootUrl + L.Util.getParamString(parameters);
               console.log(obj.name);
               console.log(URL);
-              var WFSLayer = null;
               var ajax = $.ajax({
                 url: URL,
                 dataType: "jsonp",
-                jsonpCallback: "getJson",
-                success: function(response) {
-                  //wfsExport[obj.name] = L.geoJson(response, {
-                  WFSLayer = L.geoJson(response, {
-                    style: function(feature) {
-                      return {
-                        stroke: false,
-                        fillColor: "FFFFFF",
-                        fillOpacity: 0
-                      };
-                    },
-                    onEachFeature: function(feature, layer) {
-                      //popupOptions = {maxWidth: 200};
-                      //layer.bindPopup("Popup text, access attributes with feature.properties.ATTRIBUTE_NAME", popupOptions);
-                    }
-                  }).addTo(map);
-                  //console.log(wfsExport);
-                  console.log(WFSLayer);
-                  saveToFile(WFSLayer.toGeoJSON(), obj.name);
+                jsonpCallback: "getJson"
+              })
+                .done(function(response) {
+                  if (response.features.length) {
+                    saveToFile(response, response.features[0].id);
+                  }
+                })
+                .fail(function(jqxhr, textStatus, error) {
+                  var err = textStatus + ", " + error;
+                  console.log("Request Failed: " + err);
+                  console.log(jqxhr);
+                });
+              /*success: function(response) {
+                  console.log(obj.name + "-------");
+                  saveToFile(response, obj.name);
+                },
+                error: function(response, text, option) {
+                  console.log(response);
+                  console.log(text);
+                  console.log(option);
                 }
-              });
+              });*/
             }
           }
         });
@@ -1064,16 +1069,10 @@
                   //fajl = fajl.replace(/MultiPoint/g, "Point");
                   console.log(fajl);
                   shpwrite.download(fajl, shpOptions);
-                  WFSLayer = L.geoJson(response, {
-                    style: function(feature) {},
-                    onEachFeature: function(feature, layer) {
-                      //popupOptions = {maxWidth: 200};
-                      //layer.bindPopup("Popup text, access attributes with feature.properties.ATTRIBUTE_NAME", popupOptions);
-                    }
-                  }).addTo(map);
+                  WFSLayer = response;
                   //console.log(wfsExport);
-                  console.log(WFSLayer);
-                  shpwrite.download(WFSLayer.toGeoJSON(), options);
+                  //console.log(WFSLayer);
+                  shpwrite.download(WFSLayer, options);
                   //saveToFile(WFSLayer.toGeoJSON(), obj.name);
                 }
               });
