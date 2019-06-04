@@ -915,77 +915,67 @@
         //}
       }
 
-      function timer(ms) {
-        return new Promise(res => setTimeout(res, ms));
-      }
-
       function eksportKML() {
         var wfsExport = {};
+        var brojac = -1;
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
             if (lejeri._map.hasLayer(obj.layer)) {
-              timer(3000);
-              var nazivLejera = obj.name;
-              var cql = wmsLayers[nazivLejera];
-              var name_type = cql.options.layers;
-              var filter_cql = cql.wmsParams.cql_filter;
-              var defaultParameters;
-              //console.log(cql.wmsParams.cql_filter);
-              (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
+              brojac++;
+              setTimeout(function() {
+                var nazivLejera = obj.name;
+                var cql = wmsLayers[nazivLejera];
+                var name_type = cql.options.layers;
+                var filter_cql = cql.wmsParams.cql_filter;
+                var defaultParameters;
+                //console.log(cql.wmsParams.cql_filter);
+                (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
 
-              var owsrootUrl = "http://localhost/geoserver/ows";
-              if (filter_cql === "") {
-                defaultParameters = {
-                  service: "WFS",
-                  version: "2.0",
-                  request: "GetFeature",
-                  typeName: name_type,
-                  outputFormat: "text/javascript",
-                  format_options: "callback:getJson",
-                  SrsName: "EPSG:4326"
-                };
-              } else {
-                defaultParameters = {
-                  service: "WFS",
-                  version: "2.0",
-                  request: "GetFeature",
-                  typeName: name_type,
-                  outputFormat: "text/javascript",
-                  format_options: "callback:getJson",
-                  cql_filter: filter_cql,
-                  SrsName: "EPSG:4326"
-                };
-              }
-
-              var parameters = L.Util.extend(defaultParameters);
-              var URL = owsrootUrl + L.Util.getParamString(parameters);
-              console.log(obj.name);
-              console.log(URL);
-              var ajax = $.ajax({
-                url: URL,
-                dataType: "jsonp",
-                jsonpCallback: "getJson"
-              })
-                .done(function(response) {
-                  if (response.features.length) {
-                    saveToFile(response, response.features[0].id);
-                  }
-                })
-                .fail(function(jqxhr, textStatus, error) {
-                  var err = textStatus + ", " + error;
-                  console.log("Request Failed: " + err);
-                  console.log(jqxhr);
-                });
-              /*success: function(response) {
-                  console.log(obj.name + "-------");
-                  saveToFile(response, obj.name);
-                },
-                error: function(response, text, option) {
-                  console.log(response);
-                  console.log(text);
-                  console.log(option);
+                var owsrootUrl = "http://localhost/geoserver/ows";
+                if (filter_cql === "") {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "2.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    SrsName: "EPSG:4326"
+                  };
+                } else {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "2.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    cql_filter: filter_cql,
+                    SrsName: "EPSG:4326"
+                  };
                 }
-              });*/
+
+                var parameters = L.Util.extend(defaultParameters);
+                var URL = owsrootUrl + L.Util.getParamString(parameters);
+                console.log(obj.name);
+                console.log(URL);
+                var ajax = $.ajax({
+                  url: URL,
+                  dataType: "jsonp",
+                  jsonpCallback: "getJson"
+                })
+                  .done(function(response) {
+                    if (response.features.length) {
+                      //saveToFile(response, response.features[0].id);
+                      saveToFile(response, obj.name);
+                    }
+                  })
+                  .fail(function(jqxhr, textStatus, error) {
+                    var err = textStatus + ", " + error;
+                    console.log("Request Failed: " + err);
+                    console.log(jqxhr);
+                  });
+              }, 1000 * brojac);
             }
           }
         });
