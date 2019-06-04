@@ -25,6 +25,7 @@
     <script src="js/tokml.js"></script>
     <script src="js/FileSaver.js"></script>
     <script src="js/opstine.js"></script>
+    <script src="js/atributi.sifarnik.js"></script>
     <script src="js/shpwrite.js"></script>
     <style type="text/css">
       html,
@@ -204,225 +205,6 @@
         console.log("Key: " + k);
         console.log("Value: " + v);
       }*/
-
-      var planinicaAtributi = ["name", "description", "treci"];
-      var jezeroAtributi = ["name", "description", "jezerotest"];
-      var nkroAtributi = [
-        "name",
-        "visibility",
-        "visibility",
-        "open",
-        "address",
-        "phoneNumber",
-        "description",
-        "LookAt",
-        "Region",
-        "Folder",
-        "vlasnistvo",
-        "zajednicka_dion",
-        "rac_duzina",
-        "duzina",
-        "datum_azuriranja",
-        "poc_dion",
-        "dionica",
-        "god_izg",
-        "vrsta",
-        "presjek",
-        "kraj_dion",
-        "uze",
-        "napon",
-        "opstina",
-        "gps",
-        "materijal",
-        "uze_presjek",
-        "pog_sprem",
-        "id_br",
-        "ts",
-        "izvod_ts",
-        "tip",
-        "naziv",
-        "layer_name",
-        "layer_id",
-        "dionica_gps",
-        "dionica_nn",
-        "rasvjeta",
-        "br_faza"
-      ];
-      var potrosaciAtributi = [
-        "name",
-        "visibility",
-        "open",
-        "address",
-        "phoneNumber",
-        "description",
-        "LookAt",
-        "Region",
-        "Folder",
-        "gps",
-        "naziv_nn_izvod",
-        "naziv_ts",
-        "prik_kabal",
-        "pod",
-        "adresa_mm",
-        "opstina",
-        "sifra_ts",
-        "datum_azuriranja",
-        "br_brojila",
-        "pretplatni_br",
-        "naziv",
-        "prik_mjesto",
-        "layer_name",
-        "layer_id"
-      ];
-      var prikljucnoMjestoAtributi = [
-        "name",
-        "visibility",
-        "open",
-        "address",
-        "phoneNumber",
-        "description",
-        "LookAt",
-        "Region",
-        "Folder",
-        "opstina",
-        "osiguraci",
-        "id",
-        "br_pretplatnika",
-        "izvod_ts",
-        "tip",
-        "gps",
-        "datum_azuriranja",
-        "vlasnistvo",
-        "ts",
-        "layer_name",
-        "layer_id"
-      ];
-      var stuboviAtributi = [
-        "vrsta_materijal",
-        "opstina",
-        "rastavljac",
-        "nad_visina",
-        "odvodnik_prenapona",
-        "vlasnistvo",
-        "nn_vod",
-        "vrsta_namjena",
-        "pripadnost",
-        "prikljucak_otcjep",
-        "uzemljivac",
-        "napon",
-        "sifra",
-        "vrsta_drvenog",
-        "pog_sprem",
-        "broj",
-        "br_izol_faza",
-        "optika",
-        "uzemljivac_otpor",
-        "gps",
-        "izolator_funkcija",
-        "tip_nosac_izol",
-        "datum_azuriranja",
-        "rasp_prov",
-        "visina",
-        "izolator_vrsta",
-        "tip",
-        "rasvjeta",
-        "broj_priklj_mjernih_ormara",
-        "br_pmo",
-        "br_nnv",
-        "10kv_vod",
-        "LookAt",
-        "Folder",
-        "Region",
-        "name",
-        "visibility",
-        "open",
-        "address",
-        "phoneNumber",
-        "description",
-        "id",
-        "layer_name",
-        "layer_id"
-      ];
-      var trafostaniceAtributi = [
-        "name",
-        "visibility",
-        "open",
-        "address",
-        "phoneNumber",
-        "description",
-        "LookAt",
-        "Region",
-        "Folder",
-        "vlasnistvo",
-        "funkcija",
-        "gps",
-        "naziv",
-        "god_izg",
-        "projek_snaga",
-        "tip",
-        "prenos_odnos",
-        "datum_azuriranja",
-        "opstina",
-        "inst_snaga_t1",
-        "inst_snaga_t2",
-        "inst_snaga_t3",
-        "inst_snaga_t4",
-        "izvod_celija",
-        "napojna_ts",
-        "br_nn_izvoda",
-        "pog_sprem",
-        "celije_10",
-        "id_billing",
-        "layer_name",
-        "layer_id",
-        "id_br"
-      ];
-      var vodoviAtributi = [
-        "vrsta_materijal",
-        "opstina",
-        "rastavljac",
-        "nad_visina",
-        "odvodnik_prenapona",
-        "vlasnistvo",
-        "nn_vod",
-        "vrsta_namjena",
-        "pripadnost",
-        "prikljucak_otcjep",
-        "uzemljivac",
-        "napon",
-        "sifra",
-        "vrsta_drvenog",
-        "pog_sprem",
-        "broj",
-        "br_izol_faza",
-        "optika",
-        "uzemljivac_otpor",
-        "gps",
-        "izolator_funkcija",
-        "tip_nosac_izol",
-        "datum_azuriranja",
-        "rasp_prov",
-        "visina",
-        "izolator_vrsta",
-        "tip",
-        "rasvjeta",
-        "broj_priklj_mjernih_ormara",
-        "br_pmo",
-        "br_nnv",
-        "10kv_vod",
-        "LookAt",
-        "Folder",
-        "Region",
-        "name",
-        "visibility",
-        "open",
-        "address",
-        "phoneNumber",
-        "description",
-        "id",
-        "layer_name",
-        "layer_id"
-      ];
 
       var atributiDdl = {
         Planinica: planinicaAtributi,
@@ -916,7 +698,6 @@
       }
 
       function eksportKML() {
-        var wfsExport = {};
         var brojac = -1;
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
@@ -1001,84 +782,82 @@
 
       function shpDownload() {
         // (optional) set names for feature types and zipped folder
-        var wfsExport = {};
+        var brojac = -1;
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
             if (lejeri._map.hasLayer(obj.layer)) {
-              var shpOptions = {
-                folder: obj.name,
-                types: {
-                  point: "points-" + obj.name,
-                  polygon: "polygons" + obj.name,
-                  line: "lines" + obj.name
-                }
-              };
-              var nazivLejera = obj.name;
-              var cql = wmsLayers[nazivLejera];
-              var name_type = cql.options.layers;
-              var filter_cql = cql.wmsParams.cql_filter;
-              var defaultParameters;
-              //console.log(cql.wmsParams.cql_filter);
-              (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
-
-              var owsrootUrl = "http://localhost/geoserver/ows";
-              if (filter_cql === "") {
-                defaultParameters = {
-                  service: "WFS",
-                  version: "2.0",
-                  request: "GetFeature",
-                  typeName: name_type,
-                  outputFormat: "text/javascript",
-                  format_options: "callback:getJson",
-                  SrsName: "EPSG:4326"
+              brojac++;
+              setTimeout(function() {
+                var shpOptions = {
+                  folder: obj.name,
+                  types: {
+                    point: "points-" + obj.name,
+                    polygon: "polygons" + obj.name,
+                    line: "lines" + obj.name
+                  }
                 };
-              } else {
-                defaultParameters = {
-                  service: "WFS",
-                  version: "2.0",
-                  request: "GetFeature",
-                  typeName: name_type,
-                  outputFormat: "text/javascript",
-                  format_options: "callback:getJson",
-                  cql_filter: filter_cql,
-                  SrsName: "EPSG:4326"
-                };
-              }
+                var nazivLejera = obj.name;
+                var cql = wmsLayers[nazivLejera];
+                var name_type = cql.options.layers;
+                var filter_cql = cql.wmsParams.cql_filter;
+                var defaultParameters;
+                //console.log(cql.wmsParams.cql_filter);
+                (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
 
-              var parameters = L.Util.extend(defaultParameters);
-              var URL = owsrootUrl + L.Util.getParamString(parameters);
-              console.log(obj.name);
-              console.log(URL);
-              var WFSLayer = null;
-              var ajax = $.ajax({
-                url: URL,
-                dataType: "jsonp",
-                jsonpCallback: "getJson",
-                success: function(response) {
-                  var fajl = L.geoJson(response).toGeoJSON();
-                  //fajl = fajl.replace(/MultiPoint/g, "Point");
-                  console.log(fajl);
-                  shpwrite.download(fajl, shpOptions);
-                  WFSLayer = response;
-                  //console.log(wfsExport);
-                  //console.log(WFSLayer);
-                  shpwrite.download(WFSLayer, options);
-                  //saveToFile(WFSLayer.toGeoJSON(), obj.name);
+                var owsrootUrl = "http://localhost/geoserver/ows";
+                if (filter_cql === "") {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "2.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    SrsName: "EPSG:4326"
+                  };
+                } else {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "2.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    cql_filter: filter_cql,
+                    SrsName: "EPSG:4326"
+                  };
                 }
-              });
+
+                var parameters = L.Util.extend(defaultParameters);
+                var URL = owsrootUrl + L.Util.getParamString(parameters);
+                console.log(obj.name);
+                console.log(URL);
+                var WFSLayer = null;
+                var ajax = $.ajax({
+                  url: URL,
+                  dataType: "jsonp",
+                  jsonpCallback: "getJson",
+                  success: function(response) {
+                    var fajl = L.geoJson(response).toGeoJSON();
+                    //fajl = fajl.replace(/MultiPoint/g, "Point");
+                    shpwrite.download(fajl, shpOptions);
+                    //saveToFile(WFSLayer.toGeoJSON(), obj.name);
+                  }
+                });
+              }, 1000 * brojac);
             }
           }
         });
       }
 
-      function DownloadJsonData(JSONData, FileTitle, ShowLabel) {
+      function DownloadJsonData(JSONData, FileTitle, ShowLabel, FileName) {
         //If JSONData is not an object then JSON.parse will parse the JSON string in an Object
         var arrData = typeof JSONData.features != "object" ? JSON.parse(JSONData.features) : JSONData.features;
         var CSV = "";
         //This condition will generate the Label/Header
         if (ShowLabel) {
           var row = "";
-          console.log(arrData[0]);
+          //console.log(arrData[0]);
           //This loop will extract the label from 1st index of on array
           for (var index in arrData[0]) {
             //Now convert each value to string and comma-seprated
@@ -1097,7 +876,7 @@
           //2nd loop will extract each column and convert it in string comma-seprated
           for (var index in arrData[i].properties) {
             row += '"' + arrData[i].properties[index] + '",';
-            console.log(row);
+            //console.log(row);
           }
           row.slice(0, row.length - 1);
           //add a line break after each row
@@ -1108,13 +887,13 @@
           return;
         }
         //Generate a file name
-        var filename = FileTitle + new Date();
+        //var FileName = FileTitle + new Date();
         var blob = new Blob([CSV], {
           type: "text/csv;charset=utf-8;"
         });
         if (navigator.msSaveBlob) {
           // IE 10+
-          navigator.msSaveBlob(blob, filename);
+          navigator.msSaveBlob(blob, FileName);
         } else {
           var link = document.createElement("a");
           if (link.download !== undefined) {
@@ -1123,7 +902,7 @@
             var url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
             link.style = "visibility:hidden";
-            link.download = filename + ".csv";
+            link.download = FileName + ".csv";
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1133,64 +912,57 @@
 
       function csvDownload() {
         // (optional) set names for feature types and zipped folder
-        var wfsExport = {};
+        var brojac = -1;
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
             if (lejeri._map.hasLayer(obj.layer)) {
-              var nazivLejera = obj.name;
-              var cql = wmsLayers[nazivLejera];
-              var name_type = cql.options.layers;
-              var filter_cql = cql.wmsParams.cql_filter;
-              var defaultParameters;
-              //console.log(cql.wmsParams.cql_filter);
-              (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
+              brojac++;
+              setTimeout(function() {
+                var nazivLejera = obj.name;
+                var cql = wmsLayers[nazivLejera];
+                var name_type = cql.options.layers;
+                var filter_cql = cql.wmsParams.cql_filter;
+                var defaultParameters;
+                //console.log(cql.wmsParams.cql_filter);
+                (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
 
-              var owsrootUrl = "http://localhost/geoserver/ows";
-              if (filter_cql === "") {
-                defaultParameters = {
-                  service: "WFS",
-                  version: "2.0",
-                  request: "GetFeature",
-                  typeName: name_type,
-                  outputFormat: "text/javascript",
-                  format_options: "callback:getJson",
-                  SrsName: "EPSG:4326"
-                };
-              } else {
-                defaultParameters = {
-                  service: "WFS",
-                  version: "2.0",
-                  request: "GetFeature",
-                  typeName: name_type,
-                  outputFormat: "text/javascript",
-                  format_options: "callback:getJson",
-                  cql_filter: filter_cql,
-                  SrsName: "EPSG:4326"
-                };
-              }
-
-              var parameters = L.Util.extend(defaultParameters);
-              var URL = owsrootUrl + L.Util.getParamString(parameters);
-              var WFSLayer = null;
-              var ajax = $.ajax({
-                url: URL,
-                dataType: "jsonp",
-                jsonpCallback: "getJson",
-                success: function(response) {
-                  var fajl = L.geoJson(response).toGeoJSON();
-                  DownloadJsonData(fajl, "csv", true);
-                  WFSLayer = L.geoJson(response, {
-                    style: function(feature) {},
-                    onEachFeature: function(feature, layer) {
-                      //popupOptions = {maxWidth: 200};
-                      //layer.bindPopup("Popup text, access attributes with feature.properties.ATTRIBUTE_NAME", popupOptions);
-                    }
-                  }).addTo(map);
-
-                  //shpwrite.download(WFSLayer.toGeoJSON(), options);
-                  //saveToFile(WFSLayer.toGeoJSON(), obj.name);
+                var owsrootUrl = "http://localhost/geoserver/ows";
+                if (filter_cql === "") {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "2.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    SrsName: "EPSG:4326"
+                  };
+                } else {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "2.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    cql_filter: filter_cql,
+                    SrsName: "EPSG:4326"
+                  };
                 }
-              });
+
+                var parameters = L.Util.extend(defaultParameters);
+                var URL = owsrootUrl + L.Util.getParamString(parameters);
+                var WFSLayer = null;
+                var ajax = $.ajax({
+                  url: URL,
+                  dataType: "jsonp",
+                  jsonpCallback: "getJson",
+                  success: function(response) {
+                    var fajl = L.geoJson(response).toGeoJSON();
+                    DownloadJsonData(fajl, "csv", true, obj.name);
+                  }
+                });
+              }, 1000 * brojac);
             }
           }
         });
