@@ -122,8 +122,8 @@
             </select>
           </div>
           <div>
-            <label for="vod">Naziv voda:</label>
-            <input type="text" class="form-control" id="vod" placeholder="Naziv voda" />
+            <label for="vod">Odaberite vodove:</label>
+            <select id="vod" multiple="multiple"> </select>
           </div>
           <div>
             <label for="ddlLejer">Odaberite lejer:</label><br />
@@ -190,7 +190,6 @@
       //$(document).ready(function() {
       $("#opstina").multiselect({
         buttonWidth: "100%",
-        enableFiltering: true,
         includeSelectAllOption: true
       });
       $("#naponskiNivo").multiselect({
@@ -203,15 +202,23 @@
 
       var mapaLejera = new Map([["planinica", "Planinica"], ["jezero", "Jezero"], ["treci", "Treci"]]);
       /*for (let [k, v] of mapaLejera) {
-        console.log("Key: " + k);
-        console.log("Value: " + v);
-      }*/
+          console.log("Key: " + k);
+          console.log("Value: " + v);
+        }*/
 
       var atributiDdl = {
         Planinica: planinicaAtributi,
         Jezero: vodoviAtributi
         //Jezero: jezeroAtributi
       };
+
+      var vodoviDdl = {
+        PrviVod: "prvivod",
+        DrugiVod: "drugivod",
+        TreciVod: "trecivod"
+      };
+
+      popuniDdlVodova();
 
       var url = "http://localhost/geoserver/wms";
 
@@ -242,9 +249,9 @@
         Jezero: jezero
       };
       /*console.log(Object.keys(wmsLayers));
-      console.log(Object.values(wmsLayers));
-      console.log(Object.entries(wmsLayers));
-      console.log(wmsLayers["Planinica"]);*/
+        console.log(Object.values(wmsLayers));
+        console.log(Object.entries(wmsLayers));
+        console.log(wmsLayers["Planinica"]);*/
 
       $("#ddlLejer").on("change", function() {
         //alert($("#ddlLejer option:selected").text());
@@ -379,6 +386,30 @@
               text: value
             })
           );
+        });
+      }
+
+      /**
+       * Popunjava drop down listu nazivima vodova.
+       */
+      function popuniDdlVodova() {
+        $("#vod").empty();
+        Object.keys(vodoviDdl).forEach(function(key) {
+          $("#vod").append(
+            $("<option>", {
+              selected: "selected",
+              value: key,
+              text: vodoviDdl[key]
+            })
+          );
+        });
+        //Da bi se prikazali svi zapisi, tek naknadno definišemo kao multiselect
+        //$("#vod").multiselect("destroy");
+        //$("#vod").multiselect();
+        $("#vod").multiselect({
+          buttonWidth: "100%",
+          enableFiltering: true,
+          includeSelectAllOption: true
         });
       }
 
@@ -571,28 +602,25 @@
        * @return {string} Kreira CQL upit za prikaz samo onih objekata koji pripadaju odabranim vodovima.
        */
       function vodCQL() {
-        var vrijednost = $("#vod")
-          .val()
-          .trim();
-        var nizVrijednosti;
         temp_vod = "";
-        vrijednost !== "" && (nizVrijednosti = vrijednost.split(","));
-        //if ($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()) {
-        if (vrijednost.trim() === "") {
+        if ($("#vod option:selected").size() === $("#vod option").size()) {
           temp_vod = "";
         } else {
-          nizVrijednosti.forEach(function(value, index, array) {
-            String(value).trim() !== "" && (temp_vod += "'" + String(value).trim() + "',");
-          });
-          temp_vod !== "" && (temp_vod = temp_vod.substring(0, temp_vod.length - 1)) && (temp_vod = "vod_naziv IN (" + temp_vod + ")");
+          $.each($("#vod option:selected"), function() {
+            temp_vod += "'" + $(this).val() + "',";
+          })
+            .promise()
+            .done(function() {
+              temp_vod !== "" && (temp_vod = temp_vod.substring(0, temp_vod.length - 1)) && (temp_vod = "vod_naziv IN (" + temp_vod + ")");
+            });
         }
       }
 
       function pretraga() {
         cql_text = "";
 
-        if ($("#opstina option:selected").size() === 0 || $("#naponskiNivo option:selected").size() === 0) {
-          alert("Potrebno je odabrati bar jednu opštinu i naponski nivo");
+        if ($("#opstina option:selected").size() === 0 || $("#naponskiNivo option:selected").size() === 0 || $("#vod option:selected").size() === 0) {
+          alert("Potrebno je odabrati bar jednu opštinu, naponski nivo i vod");
           return false;
         }
 
@@ -640,6 +668,7 @@
 
       //Funkcija koja kopira tekst u clipboard
       function copyToClipboard(text) {
+        console.log($("#vod"));
         var dummy = document.createElement("textarea");
         document.body.appendChild(dummy);
         dummy.value = text;
