@@ -36,6 +36,14 @@
         width: 100%;
         font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
       }
+      /* Change cursor when mousing over clickable layer */
+      .leaflet-clickable {
+        cursor: crosshair !important;
+      }
+      /* Change cursor when over entire map */
+      .leaflet-container {
+        cursor: help !important;
+      }
       .hidden {
         display: none;
         visibility: hidden;
@@ -55,8 +63,11 @@
   <body>
     <div id="map"></div>
 
+    <!-- optionally define the sidebar content via HTML markup -->
     <div id="sidebar" class="leaflet-sidebar collapsed">
+      <!-- nav tabs -->
       <div class="leaflet-sidebar-tabs">
+        <!-- top aligned tabs -->
         <ul role="tablist">
           <li>
             <a href="#home" role="tab"><em class="fa fa-bars active"></em></a>
@@ -64,6 +75,7 @@
         </ul>
       </div>
 
+      <!-- panel content -->
       <div class="leaflet-sidebar-content">
         <div class="leaflet-sidebar-pane" id="home">
           <h1 class="leaflet-sidebar-header">
@@ -129,6 +141,7 @@
             </select>
           </div>
           <div class="form-group input-group">
+            <!--<label for="vrijednost" class="col-12">Vrijednost za pretra&#382;ivanje:</label>-->
             <input type="text" class="form-control" id="vrijednost" placeholder="Vrijednost atributa pretrage" />
             <div class="input-group-append">
               <button type="button" class="btn btn-info" id="btnAtribut" onclick="dodajAtribut()">
@@ -174,6 +187,7 @@
 
       var cql_text = "";
 
+      //$(document).ready(function() {
       $("#opstina").multiselect({
         buttonWidth: "100%",
         includeSelectAllOption: true
@@ -182,12 +196,20 @@
         buttonWidth: "100%",
         includeSelectAllOption: true
       });
+      //});
+
+      /*Inicijalni podaci*/
 
       var mapaLejera = new Map([["planinica", "Planinica"], ["jezero", "Jezero"], ["treci", "Treci"]]);
+      /*for (let [k, v] of mapaLejera) {
+          console.log("Key: " + k);
+          console.log("Value: " + v);
+        }*/
 
       var atributiDdl = {
         Planinica: planinicaAtributi,
         Jezero: vodoviAtributi
+        //Jezero: jezeroAtributi
       };
 
       var vodoviDdl = {
@@ -226,8 +248,14 @@
         Planinica: planinica,
         Jezero: jezero
       };
+      /*console.log(Object.keys(wmsLayers));
+        console.log(Object.values(wmsLayers));
+        console.log(Object.entries(wmsLayers));
+        console.log(wmsLayers["Planinica"]);*/
 
       $("#ddlLejer").on("change", function() {
+        //alert($("#ddlLejer option:selected").text());
+        //alert(this.value);
         popuniDdlAtributa();
       });
 
@@ -236,9 +264,11 @@
         Jezero: ""
       };
 
+      //Kontrole za download
       var kmlControl = L.Control.extend({
         options: {
           position: "bottomright"
+          //control position - allowed: 'topleft', 'topright', 'bottomleft', 'bottomright'
         },
         onAdd: function(map) {
           var container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
@@ -259,6 +289,7 @@
       var shpControl = L.Control.extend({
         options: {
           position: "bottomright"
+          //control position - allowed: 'topleft', 'topright', 'bottomleft', 'bottomright'
         },
         onAdd: function(map) {
           var container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
@@ -279,6 +310,7 @@
       var csvControl = L.Control.extend({
         options: {
           position: "bottomright"
+          //control position - allowed: 'topleft', 'topright', 'bottomleft', 'bottomright'
         },
         onAdd: function(map) {
           var container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
@@ -305,6 +337,7 @@
         url_copy = "",
         drawLayer;
 
+      //Hash link
       var hash = new L.Hash(map);
 
       var drawnItems = new L.FeatureGroup();
@@ -332,6 +365,12 @@
       function pozivDownload() {
         var nazivLejera = $("#ddlLejer option:selected").text();
         var cql = wmsLayers[nazivLejera];
+        //console.log(cql.wmsParams.cql_filter);
+        //console.log(cql.options.layers);
+
+        //var tempalrt = cqlFilterZaLejere();
+        //console.log(temp_nivo);
+        //alert(temp_nivo);
       }
 
       /**
@@ -364,6 +403,9 @@
             })
           );
         });
+        //Da bi se prikazali svi zapisi, tek naknadno definišemo kao multiselect
+        //$("#vod").multiselect("destroy");
+        //$("#vod").multiselect();
         $("#vod").multiselect({
           buttonWidth: "100%",
           enableFiltering: true,
@@ -393,7 +435,10 @@
        * @return {string} Kreira CQL upit za svaki od lejera koji su unešeni u tabelu.
        */
       function atributCQL() {
+        //TODO: loše formatira url parametre kad je "%" i prije vrijednosti
+        //kada je isti atribut i lejer spaja vrijednosti uz ";" koji se kasnije mijenja sa OR LIKE dijelom za CQL
         $("#tblAtributi tr").each(function(i, row) {
+          //console.log(i,row.cells[0]);
           if (i > 0) {
             cqlLejer[row.cells[0].innerHTML] !== "" && cqlLejer[row.cells[0].innerHTML] !== undefined && (cqlLejer[row.cells[0].innerHTML] += " AND ");
             var formatiraniAtribut = String("(" + row.cells[1].innerHTML + " LIKE '%" + row.cells[2].innerHTML + "%')");
@@ -410,9 +455,12 @@
         map.eachLayer(function(obj) {
           var poligonKoordinate = "";
           if (obj._popup && obj._popup._content === "polygon") {
+            //console.log(JSON.stringify(obj.toGeoJSON()));
+
             for (var i = 0; i < obj.getLatLngs()[0].length; i++) {
               poligonKoordinate += obj.getLatLngs()[0][i].lng + " " + obj.getLatLngs()[0][i].lat + ", ";
             }
+            //Dodavanje prve tačke na kraju, zatvaranje poligona, potrebno za CQL. Izmijeniti polje geom, u zavisnosti kako je nazvano u konretnom sistemu
             poligonKoordinate += obj.getLatLngs()[0][0].lng + " " + obj.getLatLngs()[0][0].lat;
             if (temp_poligon === "") {
               temp_poligon = "INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
@@ -421,10 +469,12 @@
             }
           }
         });
+        //Vraća pripremljen filter koji uključuje samo objekte koji se nalaze unutar iscrtanih poligona, ako postoji ijedan poligon
         temp_poligon !== "" && (temp_poligon = "(" + temp_poligon + ")");
         return temp_poligon;
       }
 
+      // create the sidebar instance and add it to the map
       var sidebar = L.control.sidebar({ container: "sidebar" }).addTo(map);
       var lejeri = L.control.layers(baseMaps, wmsLayers).addTo(map);
       pocetniFilter();
@@ -453,9 +503,12 @@
         popuniDdlAtributa();
 
         var url = new URL(location.href);
+        console.log(url);
         var cql_param = unescape(decodeURI(url.searchParams.get("cql_param")));
+        console.log(cql_param);
         lejeri._layers.forEach(function(obj) {
           var lejerFilter = unescape(decodeURI(url.searchParams.get(obj.name)));
+          //TODO: Provjeriti da li mogu filteri da se dodaju sa set params dva puta, da se ne radi konkatenacija
           if (cql_param.length > 5) {
             if (lejerFilter !== "null" && lejerFilter !== "") {
               lejerFilter = " AND (" + lejerFilter + ")";
@@ -473,6 +526,7 @@
           var arr = inactive_layers.split(",");
           for (var i = 0; i < arr.length; i++) {
             $(".leaflet-control-layers-selector")[arr[i]].click();
+            //isključuje neaktivne lejere
           }
         }
       }
@@ -481,18 +535,24 @@
        * Uklanja sve CQL filtere prirdružene lejeru
        */
       function restartovanje() {
+        //clear search params iz location.href-a
+        //Ovo neće biti potrebno ako se link kopira
         var url = new URL(location.href);
         url.searchParams.set("cql_param", "");
         url.searchParams.set("inactive_layers", "");
         url_copy = "";
+        //Uklanjanje svih filtera za pojedinačne lejere
         for (var key in cqlLejer) {
           cqlLejer[key] = "";
         }
 
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
+            //console.log(obj);
+            //provjerava da li je aktivan na mapi ili ne, i prikazuje njegovo ime
             if (lejeri._map.hasLayer(obj.layer)) {
-              obj.layer.setParams({ cql_filter: "INCLUDE" });
+              obj.layer.setParams({ cql_filter: "INCLUDE" }); //'INCLUDE' vrijednost u cql_filteru vrši neku vrstu reseta
+              //console.log(obj.layer.wmsParams);
             }
           }
         });
@@ -515,6 +575,7 @@
               temp_opstina !== "" &&
                 (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) &&
                 (temp_opstina = "v_opstina IN (" + temp_opstina + ")");
+              //return temp_opstina;
             });
         }
       }
@@ -563,6 +624,7 @@
           return false;
         }
 
+        //Pozivanje funkcija koje kreiraju tekstove za CQL
         opstinaCQL();
         naponskiNivoCQL();
         vodCQL();
@@ -574,6 +636,7 @@
       }
 
       function formirajUrl() {
+        //TODO: Zamijeniti dio sa opštinom jer će to ići kroz poligone
         temp_opstina !== "" && (cql_text = temp_opstina);
 
         cql_text !== "" && temp_nivo !== "" && (cql_text += " AND ");
@@ -592,13 +655,18 @@
           if (obj.overlay) {
             cqlLejer[obj.name].length > 0 && (cqlLejer[obj.name] = "(" + cqlLejer[obj.name] + ")");
             url.searchParams.set(obj.name, encodeURIComponent(cqlLejer[obj.name]));
+            //console.log(url);
             cql_text !== "" && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_text });
             cqlLejer[obj.name] !== "" && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cqlLejer[obj.name] });
           }
         });
+        //TODO: ovdje odraditi filtriranje lejera i prikaz url-a
         url_copy = url.href;
+        //setTimeout((location.href = url.href), 10);
+        //copyToClipboard(url_copy);
       }
 
+      //Funkcija koja kopira tekst u clipboard
       function copyToClipboard(text) {
         console.log($("#vod"));
         var dummy = document.createElement("textarea");
@@ -614,6 +682,7 @@
         }
       }
 
+      // Dio koji se odnosi na rad sa tabelom atributa
       function AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost) {
         var tBody = $("#tblAtributi > TBODY")[0];
 
@@ -652,8 +721,10 @@
         var name = $("TD", row)
           .eq(0)
           .html();
+        //if (confirm("Da li želite da uklonite atribut " +  $("TD", row).eq(1).html() + " za lejer " +  $("TD", row).eq(0).html() + "?")) {
         var table = $("#tblAtributi")[0];
         table.deleteRow(row[0].rowIndex);
+        //}
       }
 
       function eksportKML() {
@@ -668,6 +739,7 @@
                 var name_type = cql.options.layers;
                 var filter_cql = cql.wmsParams.cql_filter;
                 var defaultParameters;
+                //console.log(cql.wmsParams.cql_filter);
                 (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
 
                 var owsrootUrl = "http://localhost/geoserver/ows";
@@ -705,6 +777,7 @@
                 })
                   .done(function(response) {
                     if (response.features.length) {
+                      //saveToFile(response, response.features[0].id);
                       saveToFile(response, obj.name);
                     }
                   })
@@ -720,6 +793,7 @@
       }
 
       function saveToFile(content, filename) {
+        //console.log(content);
         content = tokml(content);
         var file = filename + ".kml";
         download(file, content);
@@ -737,6 +811,7 @@
       }
 
       function shpDownload() {
+        // (optional) set names for feature types and zipped folder
         var brojac = -1;
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
@@ -756,6 +831,7 @@
                 var name_type = cql.options.layers;
                 var filter_cql = cql.wmsParams.cql_filter;
                 var defaultParameters;
+                //console.log(cql.wmsParams.cql_filter);
                 (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
 
                 var owsrootUrl = "http://localhost/geoserver/ows";
@@ -784,6 +860,8 @@
 
                 var parameters = L.Util.extend(defaultParameters);
                 var URL = owsrootUrl + L.Util.getParamString(parameters);
+                console.log(obj.name);
+                console.log(URL);
                 var WFSLayer = null;
                 var ajax = $.ajax({
                   url: URL,
@@ -791,7 +869,9 @@
                   jsonpCallback: "getJson",
                   success: function(response) {
                     var fajl = L.geoJson(response).toGeoJSON();
+                    //fajl = fajl.replace(/MultiPoint/g, "Point");
                     shpwrite.download(fajl, shpOptions);
+                    //saveToFile(WFSLayer.toGeoJSON(), obj.name);
                   }
                 });
               }, 1000 * brojac);
@@ -801,39 +881,54 @@
       }
 
       function DownloadJsonData(JSONData, FileTitle, ShowLabel, FileName) {
+        //If JSONData is not an object then JSON.parse will parse the JSON string in an Object
         var arrData = typeof JSONData.features != "object" ? JSON.parse(JSONData.features) : JSONData.features;
         var CSV = "";
+        //This condition will generate the Label/Header
         if (ShowLabel) {
           var row = "";
+          //console.log(arrData[0]);
+          //This loop will extract the label from 1st index of on array
           for (var index in arrData[0]) {
+            //Now convert each value to string and comma-seprated
             row += index + ",";
           }
           row = row.slice(0, -1);
+          //append Label row with line break
           CSV += row + "\r\n";
         }
+        //1st loop is to extract each row
         for (var i = 0; i < arrData.length; i++) {
           var row = arrData[i].geometry.type + ",";
           for (var index in arrData[i].geometry.coordinates) {
             row += '"' + arrData[i].geometry.coordinates[index] + '",';
           }
+          //2nd loop will extract each column and convert it in string comma-seprated
           for (var index in arrData[i].properties) {
             row += '"' + arrData[i].properties[index] + '",';
+            //console.log(row);
           }
           row.slice(0, row.length - 1);
+          //add a line break after each row
           CSV += row + "\r\n";
         }
         if (CSV == "") {
           alert("Invalid data");
           return;
         }
+        //Generate a file name
+        //var FileName = FileTitle + new Date();
         var blob = new Blob([CSV], {
           type: "text/csv;charset=utf-8;"
         });
         if (navigator.msSaveBlob) {
+          // IE 10+
           navigator.msSaveBlob(blob, FileName);
         } else {
           var link = document.createElement("a");
           if (link.download !== undefined) {
+            // feature detection
+            // Browsers that support HTML5 download attribute
             var url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
             link.style = "visibility:hidden";
@@ -846,6 +941,7 @@
       }
 
       function csvDownload() {
+        // (optional) set names for feature types and zipped folder
         var brojac = -1;
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
@@ -857,6 +953,7 @@
                 var name_type = cql.options.layers;
                 var filter_cql = cql.wmsParams.cql_filter;
                 var defaultParameters;
+                //console.log(cql.wmsParams.cql_filter);
                 (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
 
                 var owsrootUrl = "http://localhost/geoserver/ows";
