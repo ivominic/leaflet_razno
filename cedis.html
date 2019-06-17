@@ -641,19 +641,26 @@
           var btnRemove = $("<input />");
           btnRemove.attr("type", "button");
           btnRemove.attr("class", "btn btn-danger btn-sm");
-          btnRemove.attr("onclick", "RemoveAttribute(this);");
+          //btnRemove.attr("onclick", "RemoveAttribute(this);");
           btnRemove.val("X");
           cell.append(btnRemove);
+          dodajClickEventRemoveDugmetu(btnRemove);
         }
       }
 
       function RemoveAttribute(button) {
-        var row = $(button).closest("TR");
-        var name = $("TD", row)
-          .eq(0)
-          .html();
+        var row = button.closest("TR");
         var table = $("#tblAtributi")[0];
-        table.deleteRow(row[0].rowIndex);
+        table.deleteRow(row.rowIndex);
+      }
+
+      function dodajClickEventRemoveDugmetu(btn) {
+        //Pošto u CEDIS-u ne radi standardan način
+        var dugmad = document.querySelectorAll(".btn-sm");
+        var last = dugmad[dugmad.length - 1];
+        last.addEventListener("click", function() {
+          RemoveAttribute(last);
+        });
       }
 
       function eksportKML() {
