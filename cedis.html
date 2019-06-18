@@ -206,6 +206,7 @@
         .betterWms(url, {
           layers: "winsoft:planinica",
           transparent: true,
+          cql_filter: "INCLUDE",
           format: "image/png"
         })
         .addTo(map);
@@ -215,6 +216,7 @@
         .betterWms(url, {
           layers: "winsoft:jezero",
           transparent: true,
+          cql_filter: "INCLUDE",
           format: "image/png"
         })
         .addTo(map);
