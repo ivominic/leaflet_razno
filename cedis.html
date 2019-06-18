@@ -329,6 +329,35 @@
         map.addLayer(drawnItems);
       });
 
+      //Za filter po poligonima. Pošto u CEDISu ne može da se pristupi koordinatama na način kako sam originalno uradio
+      map.on("draw:created", function(e) {
+        var tipFigure = e.layerType;
+        var figura = e.layer;
+
+        console.log(figura);
+
+        if (tipFigure === "polygon") {
+          console.log("prošao poligon");
+          var koordinateFigure = "";
+          console.log(figura.getLatLngs());
+          for (var i = 0; i < figura.getLatLngs()[0].length; i++) {
+            koordinateFigure += figura.getLatLngs()[0][i].lng + " " + figura.getLatLngs()[0][i].lat + ", ";
+          }
+          koordinateFigure += figura.getLatLngs()[0][0].lng + " " + figura.getLatLngs()[0][0].lat;
+          if (temp_poligon === "") {
+            temp_poligon = "INTERSECTS(geom, POLYGON((" + koordinateFigure + ")))";
+          } else {
+            temp_poligon += " OR INTERSECTS(geom, POLYGON((" + koordinateFigure + ")))";
+          }
+        }
+        //console.log(temp_poligon1);
+
+        //var shape = figura.toGeoJSON();
+        //var shape_for_db = JSON.stringify(shape);
+        //console.log("shape", shape);
+        //console.log(shape_for_db);
+      });
+
       function pozivDownload() {
         var nazivLejera = $("#ddlLejer option:selected").text();
         var cql = wmsLayers[nazivLejera];
@@ -406,10 +435,21 @@
        * @return {string} Kreira CQL upit za prikaz samo onih objekata koji se nalaze u iscrtanim poligonima.
        */
       function poligonCQL() {
-        temp_poligon = "";
+        /*temp_poligon = "";
         map.eachLayer(function(obj) {
           var poligonKoordinate = "";
           if (obj._popup && obj._popup._content === "polygon") {
+            console.log(obj);
+            console.log(obj.editing);
+            console.log(obj.editing.latlngs);
+            console.log(obj.editing.latlngs.length);
+            console.log(obj.editing.latlngs[0][0].length);
+            var pom = obj.editing.latlngs[0][0];
+            console.log("pom", pom);
+            console.log("niz", Array.from(pom));
+            pom.forEach(function(pp) {
+              console.log(pp.lat, pp.lng);
+            });
             for (var i = 0; i < obj.getLatLngs()[0].length; i++) {
               poligonKoordinate += obj.getLatLngs()[0][i].lng + " " + obj.getLatLngs()[0][i].lat + ", ";
             }
@@ -420,8 +460,9 @@
               temp_poligon += " OR INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
             }
           }
-        });
+        });*/
         temp_poligon !== "" && (temp_poligon = "(" + temp_poligon + ")");
+        //console.log(temp_poligon);
         return temp_poligon;
       }
 
@@ -481,6 +522,7 @@
        * Uklanja sve CQL filtere prirdružene lejeru
        */
       function restartovanje() {
+        temp_poligon = ""; //Izmijenio način rada sa poligonima
         var url = new URL(location.href);
         url.searchParams.set("cql_param", "");
         url.searchParams.set("inactive_layers", "");
@@ -681,7 +723,7 @@
                 if (filter_cql === "") {
                   defaultParameters = {
                     service: "WFS",
-                    version: "2.0",
+                    version: "1.0.0",
                     request: "GetFeature",
                     typeName: name_type,
                     outputFormat: "text/javascript",
@@ -691,7 +733,7 @@
                 } else {
                   defaultParameters = {
                     service: "WFS",
-                    version: "2.0",
+                    version: "1.0.0",
                     request: "GetFeature",
                     typeName: name_type,
                     outputFormat: "text/javascript",
