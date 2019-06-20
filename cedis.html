@@ -204,7 +204,7 @@
 
       var planinica = L.tileLayer
         .betterWms(url, {
-          layers: "winsoft:planinica",
+          layers: "winsoft:stubovi",
           transparent: true,
           cql_filter: "INCLUDE",
           format: "image/png"
@@ -214,7 +214,7 @@
 
       var jezero = L.tileLayer
         .betterWms(url, {
-          layers: "winsoft:jezero",
+          layers: "winsoft:stubovi",
           transparent: true,
           cql_filter: "INCLUDE",
           format: "image/png"
@@ -778,7 +778,7 @@
 
       function download(filename, text) {
         var element = document.createElement("a");
-        element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text));
+        element.setAttribute("href", URL.createObjectURL(new Blob([text], { type: "application/octet-stream" })));
         element.setAttribute("download", filename);
 
         element.style.display = "none";
