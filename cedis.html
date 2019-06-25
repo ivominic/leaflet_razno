@@ -109,9 +109,9 @@
               <option value="OPGW" selected="selected">OPGW</option>
             </select>
           </div>
-          <div>
+          <div id="divVod">
             <label for="vod">Odaberite vodove:</label>
-            <select id="vod" multiple="multiple"> </select>
+            <select id="vod" multiple="multiple"></select>
           </div>
           <div>
             <label for="ddlLejer">Odaberite lejer:</label><br />
@@ -231,6 +231,34 @@
 
       $("#ddlLejer").on("change", function() {
         popuniDdlAtributa();
+      });
+
+      //Riješen dio za "pražnjenje multiselecta"
+      $("#naponskiNivo").on("change", function() {
+        var div = document.querySelector("#divVod");
+        var vod = div.querySelector(".multiselect-native-select");
+        vod.remove();
+        vod.innerHTML = '<select id="vod" multiple="multiple"></select>';
+        div.append(vod);
+        $("#vod").append(
+          $("<option>", {
+            selected: "selected",
+            value: "prvi",
+            text: "prvi"
+          })
+        );
+        $("#vod").append(
+          $("<option>", {
+            selected: "selected",
+            value: "drugi",
+            text: "drugi"
+          })
+        );
+        $("#vod").multiselect({
+          buttonWidth: "100%",
+          enableFiltering: true,
+          includeSelectAllOption: true
+        });
       });
 
       var cqlLejer = {
