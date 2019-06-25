@@ -204,7 +204,7 @@
 
       var planinica = L.tileLayer
         .betterWms(url, {
-          layers: "winsoft:stubovi",
+          layers: "winsoft:planinica", //"winsoft:stubovi",
           transparent: true,
           cql_filter: "INCLUDE",
           format: "image/png"
@@ -214,7 +214,7 @@
 
       var jezero = L.tileLayer
         .betterWms(url, {
-          layers: "winsoft:stubovi",
+          layers: "winsoft:jezero", //"winsoft:stubovi",
           transparent: true,
           cql_filter: "INCLUDE",
           format: "image/png"
@@ -540,7 +540,7 @@
             }
           }
         });
-        location.href = url.href;
+        //location.href = url.href;
       }
 
       /**
@@ -607,6 +607,8 @@
           return false;
         }
 
+        restartovanje();
+
         opstinaCQL();
         naponskiNivoCQL();
         vodCQL();
@@ -634,6 +636,7 @@
         url.searchParams.set("inactive_layers", encodeURIComponent(inactive_layers));
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
+            //obj.layer.setParams({ cql_filter: "INCLUDE" });
             cqlLejer[obj.name].length > 0 && (cqlLejer[obj.name] = "(" + cqlLejer[obj.name] + ")");
             url.searchParams.set(obj.name, encodeURIComponent(cqlLejer[obj.name]));
             cql_text !== "" && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_text });
