@@ -209,7 +209,7 @@
       // });
       // overlay.addTo(map);
 
-      var options1 = { transparent: "true", format: "image/png", info_format: "text/html" };
+      var options1 = { transparent: "true", format: "image/png", info_format: "text/html", feature_count: "5" };
       var source = L.WMS.source(url, options1);
       var planinica = source.getLayer("winsoft:planinica", { cql_filter: "INCLUDE", transparent: true });
       var jezero = source.getLayer("winsoft:jezero", { cql_filter: "INCLUDE" });
