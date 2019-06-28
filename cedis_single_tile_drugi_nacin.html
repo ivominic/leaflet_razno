@@ -139,7 +139,7 @@
           </div>
           <div class="form-group">
             <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">Pretraga</button>
-            <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">Restart</button>
+            <button type="button" class="btn btn-danger" id="btnRestart" onclick="location.reload(true)">Restart</button>
             <button type="button" class="btn btn-info" id="btnLista" onclick="eksportKML()">KML</button>
             <button type="button" class="btn btn-info" id="btnLista" onclick="shpDownload()">SHP</button>
             <button type="button" class="btn btn-info" id="btnLista" onclick="csvDownload()">CSV</button>
@@ -200,6 +200,7 @@
       popuniDdlVodova();
 
       var url = "http://localhost/geoserver/wms";
+      var owsrootUrl = "http://localhost/geoserver/ows";
 
       var osmLayer = L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
       // var overlay = L.WMS.overlay(url, {
@@ -215,7 +216,6 @@
       var source1 = L.WMS.source(url, options2);
       var planinica = source.getLayer("winsoft:planinica", { cql_filter: "INCLUDE", transparent: true }).addTo(map);
       var jezero = source1.getLayer("winsoft:jezero", { cql_filter: "INCLUDE" }).addTo(map);
-      console.log(planinica._source._overlay);
 
       /*var planinica = L.WMS.overlay(url, {
         layers: "winsoft:planinica", //"winsoft:stubovi",
@@ -675,7 +675,6 @@
         cql_text !== "" && temp_vod !== "" && (cql_text += " AND ");
         temp_vod !== "" && (cql_text += temp_vod);
 
-        alert(temp_poligon);
         cql_text !== "" && temp_poligon !== "" && (cql_text += " AND ");
         temp_poligon !== "" && (cql_text += temp_poligon);
 
@@ -702,7 +701,6 @@
       }
 
       function copyToClipboard(text) {
-        console.log($("#vod"));
         var dummy = document.createElement("textarea");
         document.body.appendChild(dummy);
         dummy.value = text;
@@ -772,14 +770,11 @@
             if (lejeri._map.hasLayer(obj.layer)) {
               brojac++;
               setTimeout(function() {
-                var nazivLejera = obj.name;
-                var cql = wmsLayers[nazivLejera];
-                var name_type = cql.options.layers;
-                var filter_cql = cql.wmsParams.cql_filter;
+                var name_type = obj.layer._name;
+                var filter_cql = obj.layer._source._overlay.wmsParams.cql_filter;
                 var defaultParameters;
                 (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
 
-                var owsrootUrl = "http://localhost/geoserver/ows";
                 if (filter_cql === "") {
                   defaultParameters = {
                     service: "WFS",
@@ -805,8 +800,6 @@
 
                 var parameters = L.Util.extend(defaultParameters);
                 var URL = owsrootUrl + L.Util.getParamString(parameters);
-                console.log(obj.name);
-                console.log(URL);
                 var ajax = $.ajax({
                   url: URL,
                   dataType: "jsonp",
@@ -860,14 +853,11 @@
                     line: "lines" + obj.name
                   }
                 };
-                var nazivLejera = obj.name;
-                var cql = wmsLayers[nazivLejera];
-                var name_type = cql.options.layers;
-                var filter_cql = cql.wmsParams.cql_filter;
+                var name_type = obj.layer._name;
+                var filter_cql = obj.layer._source._overlay.wmsParams.cql_filter;
                 var defaultParameters;
                 (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
 
-                var owsrootUrl = "http://localhost/geoserver/ows";
                 if (filter_cql === "") {
                   defaultParameters = {
                     service: "WFS",
@@ -961,14 +951,11 @@
             if (lejeri._map.hasLayer(obj.layer)) {
               brojac++;
               setTimeout(function() {
-                var nazivLejera = obj.name;
-                var cql = wmsLayers[nazivLejera];
-                var name_type = cql.options.layers;
-                var filter_cql = cql.wmsParams.cql_filter;
+                var name_type = obj.layer._name;
+                var filter_cql = obj.layer._source._overlay.wmsParams.cql_filter;
                 var defaultParameters;
                 (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
 
-                var owsrootUrl = "http://localhost/geoserver/ows";
                 if (filter_cql === "") {
                   defaultParameters = {
                     service: "WFS",
