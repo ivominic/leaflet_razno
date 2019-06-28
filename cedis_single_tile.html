@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CEDIS mapa</title>
+    <script src="js/popper.min.js"></script>
+    <link rel="stylesheet" href="css/leaflet.draw.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/leaflet-sidebar.css" />
+    <script src="js/leaflet-sidebar.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="js/leaflet.wms.js"></script>
+    <!--Za single tiled layers-->
+    <link rel="stylesheet" href="css/font-awesome.min.css" />
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
+    <script src="js/leaflet-hash.js"></script>
+    <script src="js/leaflet.draw.js"></script>
+    <script src="js/bootstrap-multiselect.js"></script>
+    <link href="css/bootstrap-multiselect.css" rel="stylesheet" />
+    <script src="js/tokml.js"></script>
+    <script src="js/FileSaver.js"></script>
+    <script src="js/opstine.js"></script>
+    <script src="js/atributi.sifarnik.js"></script>
+    <script src="js/shpwrite.js"></script>
+    <style type="text/css">
+      html,
+      body,
+      #map {
+        margin: 0px;
+        height: 100%;
+        width: 100%;
+        font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
+      }
+      .hidden {
+        display: none;
+        visibility: hidden;
+      }
+      body {
+        padding: 0;
+        margin: 0;
+      }
+      .btn-sm {
+        height: 18px;
+        padding: 0px 3px;
+        font-size: 12px;
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <div id="sidebar" class="leaflet-sidebar collapsed">
+      <div class="leaflet-sidebar-tabs">
+        <ul role="tablist">
+          <li>
+            <a href="#home" role="tab"><em class="fa fa-bars active"></em></a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="leaflet-sidebar-content">
+        <div class="leaflet-sidebar-pane" id="home">
+          <h1 class="leaflet-sidebar-header">
+            Pretraga
+            <span class="leaflet-sidebar-close"><em class="fa fa-caret-left"></em></span>
+          </h1>
+
+          <div>
+            <label for="opstina">Odaberite opštinu:</label><br />
+            <select id="opstina" multiple="multiple">
+              <option value="Andrijevica" selected="selected">Andrijevica</option>
+              <option value="Bar" selected="selected">Bar</option>
+              <option value="Berane" selected="selected">Berane</option>
+              <option value="BijeloPolje" selected="selected">Bijelo Polje</option>
+              <option value="Budva" selected="selected">Budva</option>
+              <option value="Cetinje" selected="selected">Cetinje</option>
+              <option value="Danilovgrad" selected="selected">Danilovgrad</option>
+              <option value="HercegNovi" selected="selected">HercegNovi</option>
+              <option value="Kolašin" selected="selected">Kolašin</option>
+              <option value="Kotor" selected="selected">Kotor</option>
+              <option value="Mojkovac" selected="selected">Mojkovac</option>
+              <option value="Nikšić" selected="selected">Nikšić</option>
+              <option value="Plav" selected="selected">Plav</option>
+              <option value="Plužine" selected="selected">Plužine</option>
+              <option value="Pljevlja" selected="selected">Pljevlja</option>
+              <option value="Podgorica" selected="selected">Podgorica</option>
+              <option value="Rožaje" selected="selected">Rožaje</option>
+              <option value="Šavnik" selected="selected">Šavnik</option>
+              <option value="Tivat" selected="selected">Tivat</option>
+              <option value="Ulcinj" selected="selected">Ulcinj</option>
+              <option value="Žabljak" selected="selected">Žabljak</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="naponskiNivo">Odaberite naponski nivo:</label>
+            <select id="naponskiNivo" multiple="multiple">
+              <option value="0.4 kV" selected="selected">0.4 kv</option>
+              <option value="10 kV" selected="selected">10 kv</option>
+              <option value="35 kV" selected="selected">35 kv</option>
+              <option value="Optika" selected="selected">Optika</option>
+              <option value="ADSS" selected="selected">ADSS</option>
+              <option value="OPGW" selected="selected">OPGW</option>
+            </select>
+          </div>
+          <div id="divVod">
+            <label for="vod">Odaberite vodove:</label>
+            <select id="vod" multiple="multiple"></select>
+          </div>
+          <div>
+            <label for="ddlLejer">Odaberite lejer:</label><br />
+            <select id="ddlLejer" class="form-control">
+              <option value="jezero">Jezero</option>
+              <option value="planinica">Planinica</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="atribut">Odaberite atribut pretrage:</label>
+            <select class="form-control" id="atribut">
+              <option value="name">Name</option>
+              <option value="description">Description</option>
+            </select>
+          </div>
+          <div class="form-group input-group">
+            <input type="text" class="form-control" id="vrijednost" placeholder="Vrijednost atributa pretrage" />
+            <div class="input-group-append">
+              <button type="button" class="btn btn-info" id="btnAtribut" onclick="dodajAtribut()">
+                Dodaj atribut
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">Pretraga</button>
+            <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">Restart</button>
+            <button type="button" class="btn btn-info" id="btnLista" onclick="eksportKML()">KML</button>
+            <button type="button" class="btn btn-info" id="btnLista" onclick="shpDownload()">SHP</button>
+            <button type="button" class="btn btn-info" id="btnLista" onclick="csvDownload()">CSV</button>
+            <button type="button" class="btn btn-info" id="btnKopiranjeLinka" onclick="copyToClipboard(url_copy)">Link</button>
+
+            <table id="tblAtributi" class=" table order-list table-responsive">
+              <thead>
+                <tr>
+                  <th>Lejer</th>
+                  <th>Atribut</th>
+                  <th>Vrijednost</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="leaflet-sidebar-pane" id="messages">
+          <h1 class="leaflet-sidebar-header">
+            Messages<span class="leaflet-sidebar-close"><em class="fa fa-caret-left"></em></span>
+          </h1>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var map = L.map("map", {
+        center: [42, 20],
+        zoom: 7
+      });
+
+      var cql_text = "";
+
+      $("#opstina").multiselect({
+        buttonWidth: "100%",
+        includeSelectAllOption: true
+      });
+      $("#naponskiNivo").multiselect({
+        buttonWidth: "100%",
+        includeSelectAllOption: true
+      });
+
+      var mapaLejera = new Map([["planinica", "Planinica"], ["jezero", "Jezero"], ["treci", "Treci"]]);
+
+      var atributiDdl = {
+        Planinica: planinicaAtributi,
+        Jezero: vodoviAtributi
+      };
+
+      var vodoviDdl = {
+        PrviVod: "prvivod",
+        DrugiVod: "drugivod",
+        TreciVod: "trecivod"
+      };
+
+      popuniDdlVodova();
+
+      var url = "http://localhost/geoserver/wms";
+
+      var osmLayer = L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
+      // var overlay = L.WMS.overlay(url, {
+      //   layers: "winsoft:stubovi",
+      //   format: "image/png",
+      //   transparent: true
+      // });
+      // overlay.addTo(map);
+
+      var options1 = { transparent: "true", format: "image/png", info_format: "text/html" };
+      var source = L.WMS.source(url, options1);
+      var planinica = source.getLayer("winsoft:planinica", { cql_filter: "INCLUDE", transparent: true });
+      var jezero = source.getLayer("winsoft:jezero", { cql_filter: "INCLUDE" });
+
+      /*var planinica = L.WMS.overlay(url, {
+        layers: "winsoft:planinica", //"winsoft:stubovi",
+        transparent: true,
+        cql_filter: "INCLUDE",
+        format: "image/png"
+      }).addTo(map);
+      //planinica.getContainer().setAttribute("id", "wmsContainer");
+
+      var jezero = L.WMS.overlay(url, {
+        layers: "winsoft:jezero", //"winsoft:stubovi",
+        transparent: true,
+        cql_filter: "INCLUDE",
+        format: "image/png"
+      }).addTo(map);*/
+
+      var baseMaps = {
+        OSM: osmLayer
+      };
+      var wmsLayers = {
+        //Stubovi: overlay,
+        Planinica: planinica,
+        Jezero: jezero
+      };
+
+      $("#ddlLejer").on("change", function() {
+        popuniDdlAtributa();
+      });
+
+      //Riješen dio za "pražnjenje multiselecta"
+      $("#naponskiNivo").on("change", function() {
+        var div = document.querySelector("#divVod");
+        var vod = div.querySelector(".multiselect-native-select");
+        vod.remove();
+        vod.innerHTML = '<select id="vod" multiple="multiple"></select>';
+        div.append(vod);
+        $("#vod").append(
+          $("<option>", {
+            selected: "selected",
+            value: "prvi",
+            text: "prvi"
+          })
+        );
+        $("#vod").append(
+          $("<option>", {
+            selected: "selected",
+            value: "drugi",
+            text: "drugi"
+          })
+        );
+        $("#vod").multiselect({
+          buttonWidth: "100%",
+          enableFiltering: true,
+          includeSelectAllOption: true
+        });
+      });
+
+      var cqlLejer = {
+        //Stubovi: "",
+        Planinica: "",
+        Jezero: ""
+      };
+
+      var kmlControl = L.Control.extend({
+        options: {
+          position: "bottomright"
+        },
+        onAdd: function(map) {
+          var container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
+          container.innerHTML = "KML";
+          container.style.backgroundColor = "white";
+          container.style.width = "30px";
+          container.style.height = "30px";
+
+          container.onclick = function(event) {
+            eksportKML();
+            event.stopPropagation();
+          };
+          return container;
+        }
+      });
+      map.addControl(new kmlControl());
+
+      var shpControl = L.Control.extend({
+        options: {
+          position: "bottomright"
+        },
+        onAdd: function(map) {
+          var container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
+          container.innerHTML = "SHP";
+          container.style.backgroundColor = "white";
+          container.style.width = "30px";
+          container.style.height = "30px";
+
+          container.onclick = function(event) {
+            shpDownload();
+            event.stopPropagation();
+          };
+          return container;
+        }
+      });
+      map.addControl(new shpControl());
+
+      var csvControl = L.Control.extend({
+        options: {
+          position: "bottomright"
+        },
+        onAdd: function(map) {
+          var container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
+          container.innerHTML = "CSV";
+          container.style.backgroundColor = "white";
+          container.style.width = "30px";
+          container.style.height = "30px";
+
+          container.onclick = function(event) {
+            csvDownload();
+            event.stopPropagation();
+          };
+          return container;
+        }
+      });
+      map.addControl(new csvControl());
+
+      var lejeriZaFiltriranje = wmsLayers,
+        temp_opstina = "",
+        temp_nivo = "",
+        temp_vod = "",
+        temp_poligon = "",
+        inactive_layers = "",
+        url_copy = "",
+        drawLayer;
+
+      var hash = new L.Hash(map);
+
+      var drawnItems = new L.FeatureGroup();
+      var drawControl = new L.Control.Draw({
+        position: "bottomright",
+        edit: {
+          featureGroup: drawnItems,
+          remove: false,
+          edit: false
+        },
+        draw: {
+          circlemarker: false
+        }
+      });
+      map.addControl(drawControl);
+      map.createPane("new-pane");
+      map.on(L.Draw.Event.CREATED, function(e) {
+        var type = e.layerType,
+          drawLayer = e.layer;
+        drawLayer.bindPopup(type);
+        drawnItems.addLayer(drawLayer);
+        map.addLayer(drawnItems);
+      });
+
+      //Za filter po poligonima. Pošto u CEDISu ne može da se pristupi koordinatama na način kako sam originalno uradio
+      map.on("draw:created", function(e) {
+        var tipFigure = e.layerType;
+        var figura = e.layer;
+
+        console.log(figura);
+
+        if (tipFigure === "polygon") {
+          console.log("prošao poligon");
+          var koordinateFigure = "";
+          console.log(figura.getLatLngs());
+          for (var i = 0; i < figura.getLatLngs()[0].length; i++) {
+            koordinateFigure += figura.getLatLngs()[0][i].lng + " " + figura.getLatLngs()[0][i].lat + ", ";
+          }
+          koordinateFigure += figura.getLatLngs()[0][0].lng + " " + figura.getLatLngs()[0][0].lat;
+          if (temp_poligon === "") {
+            temp_poligon = "INTERSECTS(geom, POLYGON((" + koordinateFigure + ")))";
+          } else {
+            temp_poligon += " OR INTERSECTS(geom, POLYGON((" + koordinateFigure + ")))";
+          }
+        }
+        //console.log(temp_poligon1);
+
+        //var shape = figura.toGeoJSON();
+        //var shape_for_db = JSON.stringify(shape);
+        //console.log("shape", shape);
+        //console.log(shape_for_db);
+      });
+
+      function pozivDownload() {
+        var nazivLejera = $("#ddlLejer option:selected").text();
+        var cql = wmsLayers[nazivLejera];
+      }
+
+      /**
+       * Popunjava drop down listu atributima u zavisnosti od odabranog lejera.
+       */
+      function popuniDdlAtributa() {
+        $("#atribut").empty();
+
+        $.each(atributiDdl[$("#ddlLejer option:selected").text()], function(index, value) {
+          $("#atribut").append(
+            $("<option>", {
+              value: value,
+              text: value
+            })
+          );
+        });
+      }
+
+      /**
+       * Popunjava drop down listu nazivima vodova.
+       */
+      function popuniDdlVodova() {
+        $("#vod").empty();
+        Object.keys(vodoviDdl).forEach(function(key) {
+          $("#vod").append(
+            $("<option>", {
+              selected: "selected",
+              value: key,
+              text: vodoviDdl[key]
+            })
+          );
+        });
+        $("#vod").multiselect({
+          buttonWidth: "100%",
+          enableFiltering: true,
+          includeSelectAllOption: true
+        });
+      }
+
+      /**
+       * @return {string} Kreira spisak deaktiviranih lejera
+       */
+      function inactiveLayers() {
+        inactive_layers = "";
+        var brojac = 0;
+
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            brojac++;
+            !lejeri._map.hasLayer(obj.layer) && (inactive_layers += brojac.toString() + ",");
+          }
+        });
+
+        inactive_layers !== "" && (inactive_layers = inactive_layers.substring(0, inactive_layers.length - 1));
+        return inactive_layers;
+      }
+
+      /**
+       * @return {string} Kreira CQL upit za svaki od lejera koji su unešeni u tabelu.
+       */
+      function atributCQL() {
+        $("#tblAtributi tr").each(function(i, row) {
+          if (i > 0) {
+            cqlLejer[row.cells[0].innerHTML] !== "" && cqlLejer[row.cells[0].innerHTML] !== undefined && (cqlLejer[row.cells[0].innerHTML] += " AND ");
+            var formatiraniAtribut = String("(" + row.cells[1].innerHTML + " LIKE '%" + row.cells[2].innerHTML + "%')");
+            cqlLejer[row.cells[0].innerHTML] += formatiraniAtribut.replace(/;/g, "%' OR " + row.cells[1].innerHTML + " LIKE '%");
+          }
+        });
+      }
+
+      /**
+       * @return {string} Kreira CQL upit za prikaz samo onih objekata koji se nalaze u iscrtanim poligonima.
+       */
+      function poligonCQL() {
+        /*temp_poligon = "";
+        map.eachLayer(function(obj) {
+          var poligonKoordinate = "";
+          if (obj._popup && obj._popup._content === "polygon") {
+            console.log(obj);
+            console.log(obj.editing);
+            console.log(obj.editing.latlngs);
+            console.log(obj.editing.latlngs.length);
+            console.log(obj.editing.latlngs[0][0].length);
+            var pom = obj.editing.latlngs[0][0];
+            console.log("pom", pom);
+            console.log("niz", Array.from(pom));
+            pom.forEach(function(pp) {
+              console.log(pp.lat, pp.lng);
+            });
+            for (var i = 0; i < obj.getLatLngs()[0].length; i++) {
+              poligonKoordinate += obj.getLatLngs()[0][i].lng + " " + obj.getLatLngs()[0][i].lat + ", ";
+            }
+            poligonKoordinate += obj.getLatLngs()[0][0].lng + " " + obj.getLatLngs()[0][0].lat;
+            if (temp_poligon === "") {
+              temp_poligon = "INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
+            } else {
+              temp_poligon += " OR INTERSECTS(geom, POLYGON((" + poligonKoordinate + ")))";
+            }
+          }
+        });*/
+        temp_poligon !== "" && (temp_poligon = "(" + temp_poligon + ")");
+        //console.log(temp_poligon);
+        return temp_poligon;
+      }
+
+      var sidebar = L.control.sidebar({ container: "sidebar" }).addTo(map);
+      var lejeri = L.control.layers(baseMaps, wmsLayers).addTo(map);
+      pocetniFilter();
+
+      /**
+       * Dodaje atribute za CQL upit
+       */
+      function dodajAtribut() {
+        var atributNaziv = $("#atribut option:selected").text();
+        var atributValue = $("#atribut option:selected").val();
+        var lejerNaziv = $("#ddlLejer option:selected").text();
+        var lejerValue = $("#ddlLejer option:selected").val();
+        var vrijednost = $("#vrijednost").val();
+
+        if (vrijednost.trim() === "" || typeof vrijednost === undefined) {
+          alert("Potrebno je unijeti vrijednost atributa");
+        } else {
+          AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost);
+        }
+      }
+
+      /**
+       * Početni filter iz url-a
+       */
+      function pocetniFilter() {
+        popuniDdlAtributa();
+
+        var url = new URL(location.href);
+        var cql_param = unescape(decodeURI(url.searchParams.get("cql_param")));
+        lejeri._layers.forEach(function(obj) {
+          var lejerFilter = unescape(decodeURI(url.searchParams.get(obj.name)));
+          if (cql_param.length > 5) {
+            if (lejerFilter !== "null" && lejerFilter !== "") {
+              lejerFilter = " AND (" + lejerFilter + ")";
+              obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_param + lejerFilter });
+            } else {
+              obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_param });
+            }
+          } else {
+            lejerFilter !== "null" && lejerFilter !== "" && obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: lejerFilter });
+          }
+        });
+
+        var inactive_layers = url.searchParams.get("inactive_layers");
+        if (inactive_layers) {
+          var arr = inactive_layers.split(",");
+          for (var i = 0; i < arr.length; i++) {
+            $(".leaflet-control-layers-selector")[arr[i]].click();
+          }
+        }
+      }
+
+      /**
+       * Uklanja sve CQL filtere prirdružene lejeru
+       */
+      function restartovanje() {
+        temp_poligon = ""; //Izmijenio način rada sa poligonima
+        var url = new URL(location.href);
+        url.searchParams.set("cql_param", "");
+        url.searchParams.set("inactive_layers", "");
+        url_copy = "";
+        for (var key in cqlLejer) {
+          cqlLejer[key] = "";
+        }
+
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            if (lejeri._map.hasLayer(obj.layer)) {
+              obj.layer.setParams({ cql_filter: "INCLUDE" });
+            }
+          }
+        });
+        //location.href = url.href;
+      }
+
+      /**
+       * @return {string} Kreira CQL upit za prikaz samo onih objekata koji se nalaze u odabranim opštinama.
+       */
+      function opstinaCQL() {
+        temp_opstina = "";
+        if ($("#opstina option:selected").size() === $("#opstina option").size()) {
+          temp_opstina = "";
+        } else {
+          $.each($("#opstina option:selected"), function() {
+            temp_opstina += "'" + $(this).val() + "',";
+          })
+            .promise()
+            .done(function() {
+              temp_opstina !== "" &&
+                (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) &&
+                (temp_opstina = "v_opstina IN (" + temp_opstina + ")");
+            });
+        }
+      }
+
+      /**
+       * @return {string} Kreira CQL upit za prikaz samo onih objekata koji pripadaju odabranim naponskim nivoima.
+       */
+      function naponskiNivoCQL() {
+        temp_nivo = "";
+        if ($("#naponskiNivo option:selected").size() === $("#naponskiNivo option").size()) {
+          temp_nivo = "";
+        } else {
+          $.each($("#naponskiNivo option:selected"), function() {
+            temp_nivo += "'" + $(this).val() + "',";
+          })
+            .promise()
+            .done(function() {
+              temp_nivo !== "" && (temp_nivo = temp_nivo.substring(0, temp_nivo.length - 1)) && (temp_nivo = "v_napon IN (" + temp_nivo + ")");
+            });
+        }
+      }
+
+      /**
+       * @return {string} Kreira CQL upit za prikaz samo onih objekata koji pripadaju odabranim vodovima.
+       */
+      function vodCQL() {
+        temp_vod = "";
+        if ($("#vod option:selected").size() === $("#vod option").size()) {
+          temp_vod = "";
+        } else {
+          $.each($("#vod option:selected"), function() {
+            temp_vod += "'" + $(this).val() + "',";
+          })
+            .promise()
+            .done(function() {
+              temp_vod !== "" && (temp_vod = temp_vod.substring(0, temp_vod.length - 1)) && (temp_vod = "vod_naziv IN (" + temp_vod + ")");
+            });
+        }
+      }
+
+      function pretraga() {
+        cql_text = "";
+
+        if ($("#opstina option:selected").size() === 0 || $("#naponskiNivo option:selected").size() === 0 || $("#vod option:selected").size() === 0) {
+          alert("Potrebno je odabrati bar jednu opštinu, naponski nivo i vod");
+          return false;
+        }
+
+        //restartovanje();
+
+        opstinaCQL();
+        naponskiNivoCQL();
+        vodCQL();
+        poligonCQL();
+        atributCQL();
+        inactiveLayers();
+
+        setTimeout(formirajUrl, 10);
+      }
+
+      function formirajUrl() {
+        temp_opstina !== "" && (cql_text = temp_opstina);
+
+        cql_text !== "" && temp_nivo !== "" && (cql_text += " AND ");
+        temp_nivo !== "" && (cql_text += temp_nivo);
+
+        cql_text !== "" && temp_vod !== "" && (cql_text += " AND ");
+        temp_vod !== "" && (cql_text += temp_vod);
+
+        cql_text !== "" && temp_poligon !== "" && (cql_text += " AND ");
+        temp_poligon !== "" && (cql_text += temp_poligon);
+
+        var url = new URL(location.href);
+        url.searchParams.set("cql_param", encodeURIComponent(cql_text));
+        url.searchParams.set("inactive_layers", encodeURIComponent(inactive_layers));
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            //obj.layer.setParams({ cql_filter: "INCLUDE" });
+            cqlLejer[obj.name].length > 0 && (cqlLejer[obj.name] = "(" + cqlLejer[obj.name] + ")");
+            url.searchParams.set(obj.name, encodeURIComponent(cqlLejer[obj.name]));
+            cql_text !== "" && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_text });
+            cqlLejer[obj.name] !== "" && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cqlLejer[obj.name] });
+          }
+        });
+        url_copy = url.href;
+      }
+
+      function copyToClipboard(text) {
+        console.log($("#vod"));
+        var dummy = document.createElement("textarea");
+        document.body.appendChild(dummy);
+        dummy.value = text;
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
+        if (text.trim() === "") {
+          alert("Potrebno je kreirati filter.");
+        } else {
+          alert("Link je uspješno kopiran.");
+        }
+      }
+
+      function AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost) {
+        var tBody = $("#tblAtributi > TBODY")[0];
+
+        var noviAtribut = true;
+        $("#tblAtributi tr").each(function(i, row) {
+          if (i > 0) {
+            if (row.cells[0].innerHTML == lejerNaziv && row.cells[1].innerHTML == atributValue) {
+              row.cells[2].innerHTML = row.cells[2].innerHTML + ";" + vrijednost;
+              noviAtribut = false;
+            }
+          }
+        });
+
+        if (noviAtribut) {
+          row = tBody.insertRow(-1);
+
+          var cell = $(row.insertCell(-1));
+          cell.html(lejerNaziv);
+          cell = $(row.insertCell(-1));
+          cell.html(atributValue);
+          cell = $(row.insertCell(-1));
+          cell.html(vrijednost);
+
+          cell = $(row.insertCell(-1));
+          var btnRemove = $("<input />");
+          btnRemove.attr("type", "button");
+          btnRemove.attr("class", "btn btn-danger btn-sm");
+          //btnRemove.attr("onclick", "RemoveAttribute(this);");
+          btnRemove.val("X");
+          cell.append(btnRemove);
+          dodajClickEventRemoveDugmetu(btnRemove);
+        }
+      }
+
+      function RemoveAttribute(button) {
+        var row = button.closest("TR");
+        var table = $("#tblAtributi")[0];
+        table.deleteRow(row.rowIndex);
+      }
+
+      function dodajClickEventRemoveDugmetu(btn) {
+        //Pošto u CEDIS-u ne radi standardan način
+        var dugmad = document.querySelectorAll(".btn-sm");
+        var last = dugmad[dugmad.length - 1];
+        last.addEventListener("click", function() {
+          RemoveAttribute(last);
+        });
+      }
+
+      function eksportKML() {
+        var brojac = -1;
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            if (lejeri._map.hasLayer(obj.layer)) {
+              brojac++;
+              setTimeout(function() {
+                var nazivLejera = obj.name;
+                var cql = wmsLayers[nazivLejera];
+                var name_type = cql.options.layers;
+                var filter_cql = cql.wmsParams.cql_filter;
+                var defaultParameters;
+                (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
+
+                var owsrootUrl = "http://localhost/geoserver/ows";
+                if (filter_cql === "") {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "1.0.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    SrsName: "EPSG:4326"
+                  };
+                } else {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "1.0.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    cql_filter: filter_cql,
+                    SrsName: "EPSG:4326"
+                  };
+                }
+
+                var parameters = L.Util.extend(defaultParameters);
+                var URL = owsrootUrl + L.Util.getParamString(parameters);
+                console.log(obj.name);
+                console.log(URL);
+                var ajax = $.ajax({
+                  url: URL,
+                  dataType: "jsonp",
+                  jsonpCallback: "getJson"
+                })
+                  .done(function(response) {
+                    if (response.features.length) {
+                      saveToFile(response, obj.name);
+                    }
+                  })
+                  .fail(function(jqxhr, textStatus, error) {
+                    var err = textStatus + ", " + error;
+                    console.log("Request Failed: " + err);
+                    console.log(jqxhr);
+                  });
+              }, 1000 * brojac);
+            }
+          }
+        });
+      }
+
+      function saveToFile(content, filename) {
+        content = tokml(content);
+        var file = filename + ".kml";
+        download(file, content);
+      }
+
+      function download(filename, text) {
+        var element = document.createElement("a");
+        element.setAttribute("href", URL.createObjectURL(new Blob([text], { type: "application/octet-stream" })));
+        element.setAttribute("download", filename);
+
+        element.style.display = "none";
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+      }
+
+      function shpDownload() {
+        var brojac = -1;
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            if (lejeri._map.hasLayer(obj.layer)) {
+              brojac++;
+              setTimeout(function() {
+                var shpOptions = {
+                  folder: obj.name,
+                  types: {
+                    point: "points-" + obj.name,
+                    polygon: "polygons" + obj.name,
+                    line: "lines" + obj.name
+                  }
+                };
+                var nazivLejera = obj.name;
+                var cql = wmsLayers[nazivLejera];
+                var name_type = cql.options.layers;
+                var filter_cql = cql.wmsParams.cql_filter;
+                var defaultParameters;
+                (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
+
+                var owsrootUrl = "http://localhost/geoserver/ows";
+                if (filter_cql === "") {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "2.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    SrsName: "EPSG:4326"
+                  };
+                } else {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "2.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    cql_filter: filter_cql,
+                    SrsName: "EPSG:4326"
+                  };
+                }
+
+                var parameters = L.Util.extend(defaultParameters);
+                var URL = owsrootUrl + L.Util.getParamString(parameters);
+                var WFSLayer = null;
+                var ajax = $.ajax({
+                  url: URL,
+                  dataType: "jsonp",
+                  jsonpCallback: "getJson",
+                  success: function(response) {
+                    var fajl = L.geoJson(response).toGeoJSON();
+                    shpwrite.download(fajl, shpOptions);
+                  }
+                });
+              }, 1000 * brojac);
+            }
+          }
+        });
+      }
+
+      function DownloadJsonData(JSONData, FileTitle, ShowLabel, FileName) {
+        var arrData = typeof JSONData.features != "object" ? JSON.parse(JSONData.features) : JSONData.features;
+        var CSV = "";
+        if (ShowLabel) {
+          var row = "";
+          for (var index in arrData[0]) {
+            row += index + ",";
+          }
+          row = row.slice(0, -1);
+          CSV += row + "\r\n";
+        }
+        for (var i = 0; i < arrData.length; i++) {
+          var row = arrData[i].geometry.type + ",";
+          for (var index in arrData[i].geometry.coordinates) {
+            row += '"' + arrData[i].geometry.coordinates[index] + '",';
+          }
+          for (var index in arrData[i].properties) {
+            row += '"' + arrData[i].properties[index] + '",';
+          }
+          row.slice(0, row.length - 1);
+          CSV += row + "\r\n";
+        }
+        if (CSV == "") {
+          alert("Invalid data");
+          return;
+        }
+        var blob = new Blob([CSV], {
+          type: "text/csv;charset=utf-8;"
+        });
+        if (navigator.msSaveBlob) {
+          navigator.msSaveBlob(blob, FileName);
+        } else {
+          var link = document.createElement("a");
+          if (link.download !== undefined) {
+            var url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.style = "visibility:hidden";
+            link.download = FileName + ".csv";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        }
+      }
+
+      function csvDownload() {
+        var brojac = -1;
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            if (lejeri._map.hasLayer(obj.layer)) {
+              brojac++;
+              setTimeout(function() {
+                var nazivLejera = obj.name;
+                var cql = wmsLayers[nazivLejera];
+                var name_type = cql.options.layers;
+                var filter_cql = cql.wmsParams.cql_filter;
+                var defaultParameters;
+                (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
+
+                var owsrootUrl = "http://localhost/geoserver/ows";
+                if (filter_cql === "") {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "2.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    SrsName: "EPSG:4326"
+                  };
+                } else {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "2.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    cql_filter: filter_cql,
+                    SrsName: "EPSG:4326"
+                  };
+                }
+
+                var parameters = L.Util.extend(defaultParameters);
+                var URL = owsrootUrl + L.Util.getParamString(parameters);
+                var WFSLayer = null;
+                var ajax = $.ajax({
+                  url: URL,
+                  dataType: "jsonp",
+                  jsonpCallback: "getJson",
+                  success: function(response) {
+                    var fajl = L.geoJson(response).toGeoJSON();
+                    DownloadJsonData(fajl, "csv", true, obj.name);
+                  }
+                });
+              }, 1000 * brojac);
+            }
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
