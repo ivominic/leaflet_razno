@@ -138,10 +138,10 @@
           </div>
           <div class="form-group">
             <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">Pretraga</button>
-            <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">Restart</button>
-            <button type="button" class="btn btn-info" id="btnLista" onclick="eksportKML()">KML</button>
-            <button type="button" class="btn btn-info" id="btnLista" onclick="shpDownload()">SHP</button>
-            <button type="button" class="btn btn-info" id="btnLista" onclick="csvDownload()">CSV</button>
+            <button type="button" class="btn btn-danger" id="btnRestart" onclick="hardReset()">Restart</button>
+            <button type="button" class="btn btn-info" id="btnKML" onclick="eksportKML()">KML</button>
+            <button type="button" class="btn btn-info" id="btnSHP" onclick="shpDownload()">SHP</button>
+            <button type="button" class="btn btn-info" id="btnCSV" onclick="csvDownload()">CSV</button>
             <button type="button" class="btn btn-info" id="btnKopiranjeLinka" onclick="copyToClipboard(url_copy)">Link</button>
 
             <table id="tblAtributi" class=" table order-list table-responsive">
@@ -548,11 +548,16 @@
         }
       }
 
+      function hardReset() {
+        temp_poligon = "";
+        restartovanje;
+      }
+
       /**
        * Uklanja sve CQL filtere prirdružene lejeru
        */
       function restartovanje() {
-        temp_poligon = ""; //Izmijenio način rada sa poligonima
+        //temp_poligon = ""; //Izmijenio način rada sa poligonima
         var url = new URL(location.href);
         url.searchParams.set("cql_param", "");
         url.searchParams.set("inactive_layers", "");

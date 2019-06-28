@@ -209,12 +209,15 @@
       // });
       // overlay.addTo(map);
 
-      /*var options1 = { transparent: "true", format: "image/png", info_format: "text/html", feature_count: "5" };
+      var options1 = { transparent: "true", format: "image/png", info_format: "text/html", feature_count: "5" };
+      var options2 = { transparent: "true", format: "image/png", info_format: "text/html", feature_count: "5" };
       var source = L.WMS.source(url, options1);
-      var planinica = source.getLayer("winsoft:planinica", { cql_filter: "INCLUDE", transparent: true });
-      var jezero = source.getLayer("winsoft:jezero", { cql_filter: "INCLUDE" });*/
+      var source1 = L.WMS.source(url, options2);
+      var planinica = source.getLayer("winsoft:planinica", { cql_filter: "INCLUDE", transparent: true }).addTo(map);
+      var jezero = source1.getLayer("winsoft:jezero", { cql_filter: "INCLUDE" }).addTo(map);
+      console.log(planinica._source._overlay);
 
-      var planinica = L.WMS.overlay(url, {
+      /*var planinica = L.WMS.overlay(url, {
         layers: "winsoft:planinica", //"winsoft:stubovi",
         transparent: true,
         cql_filter: "INCLUDE",
@@ -227,8 +230,10 @@
         transparent: true,
         cql_filter: "INCLUDE",
         format: "image/png"
-      }).addTo(map);
+      }).addTo(map);*/
 
+      //planinica.addTo(map);
+      //jezero.addTo(map);
       var baseMaps = {
         OSM: osmLayer
       };
@@ -540,12 +545,16 @@
           if (cql_param.length > 5) {
             if (lejerFilter !== "null" && lejerFilter !== "") {
               lejerFilter = " AND (" + lejerFilter + ")";
-              obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_param + lejerFilter });
+              obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer._source._overlay.setParams({ cql_filter: cql_param + lejerFilter });
             } else {
-              obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_param });
+              obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer._source._overlay.setParams({ cql_filter: cql_param });
             }
           } else {
-            lejerFilter !== "null" && lejerFilter !== "" && obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: lejerFilter });
+            lejerFilter !== "null" &&
+              lejerFilter !== "" &&
+              obj.overlay &&
+              lejeri._map.hasLayer(obj.layer) &&
+              obj.layer._source._overlay.setParams({ cql_filter: lejerFilter });
           }
         });
 
@@ -562,7 +571,7 @@
        * Uklanja sve CQL filtere prirdružene lejeru
        */
       function restartovanje() {
-        temp_poligon = ""; //Izmijenio način rada sa poligonima
+        //temp_poligon = ""; //Izmijenio način rada sa poligonima
         var url = new URL(location.href);
         url.searchParams.set("cql_param", "");
         url.searchParams.set("inactive_layers", "");
@@ -574,7 +583,7 @@
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
             if (lejeri._map.hasLayer(obj.layer)) {
-              obj.layer.setParams({ cql_filter: "INCLUDE" });
+              obj.layer._source._overlay.setParams({ cql_filter: "INCLUDE" });
             }
           }
         });
@@ -666,6 +675,7 @@
         cql_text !== "" && temp_vod !== "" && (cql_text += " AND ");
         temp_vod !== "" && (cql_text += temp_vod);
 
+        alert(temp_poligon);
         cql_text !== "" && temp_poligon !== "" && (cql_text += " AND ");
         temp_poligon !== "" && (cql_text += temp_poligon);
 
@@ -677,8 +687,15 @@
             //obj.layer.setParams({ cql_filter: "INCLUDE" });
             cqlLejer[obj.name].length > 0 && (cqlLejer[obj.name] = "(" + cqlLejer[obj.name] + ")");
             url.searchParams.set(obj.name, encodeURIComponent(cqlLejer[obj.name]));
-            cql_text !== "" && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cql_text });
-            cqlLejer[obj.name] !== "" && lejeri._map.hasLayer(obj.layer) && obj.layer.setParams({ cql_filter: cqlLejer[obj.name] });
+            if (lejeri._map.hasLayer(obj.layer)) {
+              // console.log(obj.layer);
+              // console.log(cql_text, cqlLejer[obj.name]);
+              // obj.layer.setParams({ cql_filter: "name LIKE '%3%'" });
+              cql_text !== "" && obj.layer._source._overlay.setParams({ cql_filter: cql_text });
+              cqlLejer[obj.name] !== "" && obj.layer._source._overlay.setParams({ cql_filter: cqlLejer[obj.name] });
+              obj.layer.removeFrom(map);
+              obj.layer.addTo(map);
+            }
           }
         });
         url_copy = url.href;
