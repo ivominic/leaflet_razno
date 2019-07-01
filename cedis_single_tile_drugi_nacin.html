@@ -140,9 +140,9 @@
           <div class="form-group">
             <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">Pretraga</button>
             <button type="button" class="btn btn-danger" id="btnRestart" onclick="location.reload(true)">Restart</button>
-            <button type="button" class="btn btn-info" id="btnLista" onclick="eksportKML()">KML</button>
-            <button type="button" class="btn btn-info" id="btnLista" onclick="shpDownload()">SHP</button>
-            <button type="button" class="btn btn-info" id="btnLista" onclick="csvDownload()">CSV</button>
+            <button type="button" class="btn btn-info" id="btnKML" onclick="eksportKML()">KML</button>
+            <button type="button" class="btn btn-info" id="btnSHP" onclick="shpDownload()">SHP</button>
+            <button type="button" class="btn btn-info" id="btnCSV" onclick="setZoom()">CSV</button>
             <button type="button" class="btn btn-info" id="btnKopiranjeLinka" onclick="copyToClipboard(url_copy)">Link</button>
 
             <table id="tblAtributi" class=" table order-list table-responsive">
@@ -348,6 +348,10 @@
         temp_poligon = "",
         inactive_layers = "",
         url_copy = "",
+        minX = 0,
+        minY = 0,
+        maxX = 0,
+        maxY = 0,
         drawLayer;
 
       var hash = new L.Hash(map);
@@ -995,6 +999,93 @@
             }
           }
         });
+      }
+
+      function setZoom() {
+        minX = 0;
+        minY = 0;
+        maxX = 0;
+        maxY = 0;
+        var brojac = -1;
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            if (lejeri._map.hasLayer(obj.layer)) {
+              brojac++;
+              setTimeout(function() {
+                var name_type = obj.layer._name;
+                var filter_cql = obj.layer._source._overlay.wmsParams.cql_filter;
+                var defaultParameters;
+                (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
+
+                if (filter_cql === "") {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "1.0.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    SrsName: "EPSG:4326"
+                  };
+                } else {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "1.0.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson",
+                    cql_filter: filter_cql,
+                    SrsName: "EPSG:4326"
+                  };
+                }
+
+                var parameters = L.Util.extend(defaultParameters);
+                var URL = owsrootUrl + L.Util.getParamString(parameters);
+                var ajax = $.ajax({
+                  url: URL,
+                  dataType: "jsonp",
+                  jsonpCallback: "getJson"
+                })
+                  .done(function(response) {
+                    if (response.features.length) {
+                      response.features.forEach(function(feature) {
+                        //console.log(feature.geometry.coordinates);
+                        for (var i = 0; i < feature.geometry.coordinates.length; i++) {
+                          //console.log(feature.geometry.coordinates[i][0]);
+                          //console.log(feature.geometry.coordinates[i][1]);
+                          if (minX === 0) {
+                            minX = feature.geometry.coordinates[i][0];
+                            minY = feature.geometry.coordinates[i][1];
+                            maxX = feature.geometry.coordinates[i][0];
+                            maxY = feature.geometry.coordinates[i][1];
+                          }
+
+                          minX > feature.geometry.coordinates[i][0] && (minX = feature.geometry.coordinates[i][0]);
+                          minY > feature.geometry.coordinates[i][1] && (minY = feature.geometry.coordinates[i][1]);
+                          maxX < feature.geometry.coordinates[i][0] && (maxX = feature.geometry.coordinates[i][0]);
+                          maxY < feature.geometry.coordinates[i][1] && (maxY = feature.geometry.coordinates[i][1]);
+                        }
+                      });
+                      //console.log("adasdasdasd");
+                      //console.log(minX, minY, maxX, maxY);
+                    }
+                  })
+                  .fail(function(jqxhr, textStatus, error) {
+                    var err = textStatus + ", " + error;
+                    console.log("Request Failed: " + err);
+                    console.log(jqxhr);
+                  });
+              }, 1000 * brojac);
+            }
+          }
+        });
+
+        setTimeout(function() {
+          if (minX > 0) {
+            map.setView(new L.LatLng((minY + maxY) / 2, (minX + maxX) / 2), 13);
+          }
+        }, 1000 * (brojac + 1));
       }
     </script>
   </body>
