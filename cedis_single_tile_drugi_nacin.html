@@ -1011,72 +1011,72 @@
           if (obj.overlay) {
             if (lejeri._map.hasLayer(obj.layer)) {
               brojac++;
-              setTimeout(function() {
-                var name_type = obj.layer._name;
-                var filter_cql = obj.layer._source._overlay.wmsParams.cql_filter;
-                var defaultParameters;
-                (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
+              //setTimeout(function() {
+              var name_type = obj.layer._name;
+              var filter_cql = obj.layer._source._overlay.wmsParams.cql_filter;
+              var defaultParameters;
+              (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
 
-                if (filter_cql === "") {
-                  defaultParameters = {
-                    service: "WFS",
-                    version: "1.0.0",
-                    request: "GetFeature",
-                    typeName: name_type,
-                    outputFormat: "text/javascript",
-                    format_options: "callback:getJson",
-                    SrsName: "EPSG:4326"
-                  };
-                } else {
-                  defaultParameters = {
-                    service: "WFS",
-                    version: "1.0.0",
-                    request: "GetFeature",
-                    typeName: name_type,
-                    outputFormat: "text/javascript",
-                    format_options: "callback:getJson",
-                    cql_filter: filter_cql,
-                    SrsName: "EPSG:4326"
-                  };
-                }
+              if (filter_cql === "") {
+                defaultParameters = {
+                  service: "WFS",
+                  version: "1.0.0",
+                  request: "GetFeature",
+                  typeName: name_type,
+                  outputFormat: "text/javascript",
+                  format_options: "callback:" + name_type.replace(":", ""),
+                  SrsName: "EPSG:4326"
+                };
+              } else {
+                defaultParameters = {
+                  service: "WFS",
+                  version: "1.0.0",
+                  request: "GetFeature",
+                  typeName: name_type,
+                  outputFormat: "text/javascript",
+                  format_options: "callback:" + name_type.replace(":", ""),
+                  cql_filter: filter_cql,
+                  SrsName: "EPSG:4326"
+                };
+              }
 
-                var parameters = L.Util.extend(defaultParameters);
-                var URL = owsrootUrl + L.Util.getParamString(parameters);
-                var ajax = $.ajax({
-                  url: URL,
-                  dataType: "jsonp",
-                  jsonpCallback: "getJson"
-                })
-                  .done(function(response) {
-                    if (response.features.length) {
-                      response.features.forEach(function(feature) {
-                        //console.log(feature.geometry.coordinates);
-                        for (var i = 0; i < feature.geometry.coordinates.length; i++) {
-                          //console.log(feature.geometry.coordinates[i][0]);
-                          //console.log(feature.geometry.coordinates[i][1]);
-                          if (minX === 0) {
-                            minX = feature.geometry.coordinates[i][0];
-                            minY = feature.geometry.coordinates[i][1];
-                            maxX = feature.geometry.coordinates[i][0];
-                            maxY = feature.geometry.coordinates[i][1];
-                          }
-
-                          minX > feature.geometry.coordinates[i][0] && (minX = feature.geometry.coordinates[i][0]);
-                          minY > feature.geometry.coordinates[i][1] && (minY = feature.geometry.coordinates[i][1]);
-                          maxX < feature.geometry.coordinates[i][0] && (maxX = feature.geometry.coordinates[i][0]);
-                          maxY < feature.geometry.coordinates[i][1] && (maxY = feature.geometry.coordinates[i][1]);
+              var parameters = L.Util.extend(defaultParameters);
+              var URL = owsrootUrl + L.Util.getParamString(parameters);
+              var ajax = $.ajax({
+                url: URL,
+                dataType: "jsonp",
+                jsonpCallback: obj.layer._name.replace(":", "") //"getJson"
+              })
+                .done(function(response) {
+                  if (response.features.length) {
+                    response.features.forEach(function(feature) {
+                      //console.log(feature.geometry.coordinates);
+                      for (var i = 0; i < feature.geometry.coordinates.length; i++) {
+                        //console.log(feature.geometry.coordinates[i][0]);
+                        //console.log(feature.geometry.coordinates[i][1]);
+                        if (minX === 0) {
+                          minX = feature.geometry.coordinates[i][0];
+                          minY = feature.geometry.coordinates[i][1];
+                          maxX = feature.geometry.coordinates[i][0];
+                          maxY = feature.geometry.coordinates[i][1];
                         }
-                      });
-                      //console.log("adasdasdasd");
-                      //console.log(minX, minY, maxX, maxY);
-                    }
-                  })
-                  .fail(function(jqxhr, textStatus, error) {
-                    var err = textStatus + ", " + error;
-                    console.log("Request Failed: " + err);
-                    console.log(jqxhr);
-                  });
-              }, 1000 * brojac);
+
+                        minX > feature.geometry.coordinates[i][0] && (minX = feature.geometry.coordinates[i][0]);
+                        minY > feature.geometry.coordinates[i][1] && (minY = feature.geometry.coordinates[i][1]);
+                        maxX < feature.geometry.coordinates[i][0] && (maxX = feature.geometry.coordinates[i][0]);
+                        maxY < feature.geometry.coordinates[i][1] && (maxY = feature.geometry.coordinates[i][1]);
+                      }
+                    });
+                    //console.log("adasdasdasd");
+                    //console.log(minX, minY, maxX, maxY);
+                  }
+                })
+                .fail(function(jqxhr, textStatus, error) {
+                  var err = textStatus + ", " + error;
+                  console.log("Request Failed: " + err);
+                  console.log(jqxhr);
+                });
+              //}, 1000 * brojac);
             }
           }
         });
@@ -1085,7 +1085,8 @@
           if (minX > 0) {
             map.setView(new L.LatLng((minY + maxY) / 2, (minX + maxX) / 2), 13);
           }
-        }, 1000 * (brojac + 1));
+        }, 1000);
+        //}, 1000 * (brojac + 1));
       }
     </script>
   </body>
