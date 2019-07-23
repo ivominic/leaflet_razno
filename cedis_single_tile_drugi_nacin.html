@@ -27,7 +27,7 @@
     <script src="js/FileSaver.js"></script>
     <script src="js/opstine.js"></script>
     <script src="js/atributi.sifarnik.js"></script>
-    <script src="js/shpwrite.js"></script>
+    <script src="js/shpwrite1.js"></script>
     <style type="text/css">
       html,
       body,
@@ -214,7 +214,7 @@
       var options2 = { transparent: "true", format: "image/png", info_format: "text/html", feature_count: "5" };
       var source = L.WMS.source(url, options1);
       var source1 = L.WMS.source(url, options2);
-      var planinica = source.getLayer("winsoft:planinica", { cql_filter: "INCLUDE", transparent: true }).addTo(map);
+      var planinica = source.getLayer("winsoft:stubovi", { cql_filter: "INCLUDE", transparent: true }).addTo(map);
       var jezero = source1.getLayer("winsoft:jezero", { cql_filter: "INCLUDE" }).addTo(map);
 
       /*var planinica = L.WMS.overlay(url, {
@@ -609,7 +609,7 @@
             .done(function() {
               temp_opstina !== "" &&
                 (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) &&
-                (temp_opstina = "v_opstina IN (" + temp_opstina + ")");
+                (temp_opstina = "opstina IN (" + temp_opstina + ")");
             });
         }
       }
@@ -840,6 +840,8 @@
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
+        window.URL.revokeObjectURL(url);
+        element.remove();
       }
 
       function shpDownload() {
@@ -853,8 +855,8 @@
                   folder: obj.name,
                   types: {
                     point: "points-" + obj.name,
-                    polygon: "polygons" + obj.name,
-                    line: "lines" + obj.name
+                    polygon: "polygons-" + obj.name,
+                    line: "lines-" + obj.name
                   }
                 };
                 var name_type = obj.layer._name;
@@ -894,10 +896,11 @@
                   jsonpCallback: "getJson",
                   success: function(response) {
                     var fajl = L.geoJson(response).toGeoJSON();
+                    console.log(fajl);
                     shpwrite.download(fajl, shpOptions);
                   }
                 });
-              }, 1000 * brojac);
+              }, 10000 * brojac);
             }
           }
         });
