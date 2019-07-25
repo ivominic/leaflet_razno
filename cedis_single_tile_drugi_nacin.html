@@ -351,7 +351,7 @@
         minY = 0,
         maxX = 0,
         maxY = 0,
-        blnFokus = false,
+        blnFokus = true,
         drawLayer;
 
       var hash = new L.Hash(map);
@@ -628,8 +628,6 @@
           return false;
         }
 
-        //restartovanje();
-
         opstinaCQL();
         naponskiNivoCQL();
         vodCQL();
@@ -637,7 +635,15 @@
         atributCQL();
         inactiveLayers();
 
-        setTimeout(formirajUrl, 10);
+        if (blnFokus) {
+          //Samo fokus na željene objekte
+          setTimeout(setZoom, 10);
+        } else {
+          //restartovanje();
+          //Standardna pretraga
+
+          setTimeout(formirajUrl, 10);
+        }
       }
 
       function formirajUrl() {
@@ -995,45 +1001,42 @@
       }
 
       function setZoom() {
-        minX = 0;
-        minY = 0;
-        maxX = 0;
-        maxY = 0;
+        var blnAtribut = false;
+        var blnZumirano = false; // Zumira se samo ako je manje od 5 elemenata u pretrazi. Ako je false, označava da nije ispunjen uslov za zumiranje.
+
+        temp_opstina !== "" && (cql_text = temp_opstina);
+        cql_text !== "" && temp_nivo !== "" && (cql_text += " AND ");
+        temp_nivo !== "" && (cql_text += temp_nivo);
+        cql_text !== "" && temp_vod !== "" && (cql_text += " AND ");
+        temp_vod !== "" && (cql_text += temp_vod);
+        cql_text !== "" && temp_poligon !== "" && (cql_text += " AND ");
+        temp_poligon !== "" && (cql_text += temp_poligon);
+
         lejeri._layers.forEach(function(obj) {
           if (obj.overlay) {
             if (lejeri._map.hasLayer(obj.layer)) {
-              if (cqlLejer[obj.name].length > 7) {
-                //da ne sadrži samo "INCLUDE"
+              if (cqlLejer[obj.name].length > 7 && !blnAtribut) {
+                //da ne sadrži samo "INCLUDE" i da nije već zumirano
+                blnAtribut = true;
                 console.log("naziv lejera", obj.name);
                 console.log("filter lejera", cqlLejer[obj.name]);
 
                 var name_type = obj.layer._name;
-                var filter_cql = obj.layer._source._overlay.wmsParams.cql_filter;
-                var defaultParameters;
-                (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
+                //var filter_cql = obj.layer._source._overlay.wmsParams.cql_filter;
+                var filter_cql = cqlLejer[obj.name];
+                cql_text !== "" && (filter_cql = cql_text + " AND (" + filter_cql + ")");
+                console.log(filter_cql);
 
-                if (filter_cql === "") {
-                  defaultParameters = {
-                    service: "WFS",
-                    version: "1.0.0",
-                    request: "GetFeature",
-                    typeName: name_type,
-                    outputFormat: "text/javascript",
-                    format_options: "callback:" + name_type.replace(":", ""),
-                    SrsName: "EPSG:4326"
-                  };
-                } else {
-                  defaultParameters = {
-                    service: "WFS",
-                    version: "1.0.0",
-                    request: "GetFeature",
-                    typeName: name_type,
-                    outputFormat: "text/javascript",
-                    format_options: "callback:" + name_type.replace(":", ""),
-                    cql_filter: filter_cql,
-                    SrsName: "EPSG:4326"
-                  };
-                }
+                var defaultParameters = {
+                  service: "WFS",
+                  version: "1.0.0",
+                  request: "GetFeature",
+                  typeName: name_type,
+                  outputFormat: "text/javascript",
+                  format_options: "callback:" + name_type.replace(":", ""),
+                  cql_filter: filter_cql,
+                  SrsName: "EPSG:4326"
+                };
 
                 var parameters = L.Util.extend(defaultParameters);
                 var URL = owsrootUrl + L.Util.getParamString(parameters);
@@ -1043,7 +1046,9 @@
                   jsonpCallback: obj.layer._name.replace(":", "") //"getJson"
                 })
                   .done(function(response) {
-                    if (response.features.length) {
+                    console.log(response.features);
+                    if (response.features.length > 0 && response.features.length <= 5) {
+                      blnZumirano = true;
                       var minX = 0,
                         maxX = 0,
                         minY = 0,
@@ -1068,28 +1073,30 @@
                       });
                       //console.log("adasdasdasd");
                       //console.log(minX, minY, maxX, maxY);
-                      if (minX > 0) {
-                        var zoom = 8;
-                        var maxDistance = maxX - minX;
-                        maxDistance < maxY - minY && (maxDistance = maxY - minY);
-                        console.log("distanca", maxDistance);
-                        if (maxDistance >= 1) {
-                          zoom = 9;
-                        } else if (maxDistance >= 0.1) {
-                          zoom = 10;
-                        } else if (maxDistance >= 0.01) {
-                          zoom = 11;
-                        } else if (maxDistance >= 0.001) {
-                          zoom = 12;
-                        } else if (maxDistance >= 0.0001) {
-                          zoom = 13;
-                        } else if (maxDistance >= 0.00001) {
-                          zoom = 14;
-                        } else if (maxDistance < 0.00001) {
-                          zoom = 18;
+                      setTimeout(function() {
+                        if (minX > 0) {
+                          var zoom = 9;
+                          var maxDistance = maxX - minX;
+                          maxDistance < maxY - minY && (maxDistance = maxY - minY);
+                          //console.log("distanca", maxDistance);
+                          if (maxDistance >= 1) {
+                            zoom = 10;
+                          } else if (maxDistance >= 0.1) {
+                            zoom = 11;
+                          } else if (maxDistance >= 0.01) {
+                            zoom = 12;
+                          } else if (maxDistance >= 0.001) {
+                            zoom = 13;
+                          } else if (maxDistance >= 0.0001) {
+                            zoom = 14;
+                          } else if (maxDistance >= 0.00001) {
+                            zoom = 15;
+                          } else if (maxDistance < 0.00001) {
+                            zoom = 18;
+                          }
+                          map.setView(new L.LatLng((minY + maxY) / 2, (minX + maxX) / 2), zoom);
                         }
-                        map.setView(new L.LatLng((minY + maxY) / 2, (minX + maxX) / 2), zoom);
-                      }
+                      }, 100);
                     }
                   })
                   .fail(function(jqxhr, textStatus, error) {
@@ -1097,19 +1104,87 @@
                     console.log("Request Failed: " + err);
                     console.log(jqxhr);
                   });
-              } else {
-                console.log("naziv lejera nema", obj.name);
-                console.log("filter lejera nema", cqlLejer[obj.name]);
               }
             }
           }
         });
 
-        /*setTimeout(function() {
-          if (minX > 0) {
-            map.setView(new L.LatLng((minY + maxY) / 2, (minX + maxX) / 2), 13);
-          }
-        }, 1000);*/
+        //Ako se radi pretraga po vodovima
+        if ($("#vod option:selected").size() <= 2 && !blnAtribut) {
+          var name_type = "winsoft:stubovi"; //obj.layer._name;
+          var filter_cql = temp_vod;
+          var defaultParameters = {
+            service: "WFS",
+            version: "1.0.0",
+            request: "GetFeature",
+            typeName: name_type,
+            outputFormat: "text/javascript",
+            format_options: "callback:" + name_type.replace(":", ""),
+            cql_filter: filter_cql,
+            SrsName: "EPSG:4326"
+          };
+
+          var parameters = L.Util.extend(defaultParameters);
+          var URL = owsrootUrl + L.Util.getParamString(parameters);
+          var ajax = $.ajax({
+            url: URL,
+            dataType: "jsonp",
+            jsonpCallback: "zoomVod" //"getJson"
+          })
+            .done(function(response) {
+              if (response.features.length > 0 && response.features.length <= 5) {
+                blnZumirano = true;
+                var minX = 0,
+                  maxX = 0,
+                  minY = 0,
+                  maxY = 0;
+                response.features.forEach(function(feature) {
+                  for (var i = 0; i < feature.geometry.coordinates.length; i++) {
+                    if (minX === 0) {
+                      minX = feature.geometry.coordinates[i][0];
+                      minY = feature.geometry.coordinates[i][1];
+                      maxX = feature.geometry.coordinates[i][0];
+                      maxY = feature.geometry.coordinates[i][1];
+                    }
+
+                    minX > feature.geometry.coordinates[i][0] && (minX = feature.geometry.coordinates[i][0]);
+                    minY > feature.geometry.coordinates[i][1] && (minY = feature.geometry.coordinates[i][1]);
+                    maxX < feature.geometry.coordinates[i][0] && (maxX = feature.geometry.coordinates[i][0]);
+                    maxY < feature.geometry.coordinates[i][1] && (maxY = feature.geometry.coordinates[i][1]);
+                  }
+                });
+                setTimeout(function() {
+                  if (minX > 0) {
+                    var zoom = 9;
+                    var maxDistance = maxX - minX;
+                    maxDistance < maxY - minY && (maxDistance = maxY - minY);
+                    //console.log("distanca", maxDistance);
+                    if (maxDistance >= 1) {
+                      zoom = 10;
+                    } else if (maxDistance >= 0.1) {
+                      zoom = 11;
+                    } else if (maxDistance >= 0.01) {
+                      zoom = 12;
+                    } else if (maxDistance >= 0.001) {
+                      zoom = 13;
+                    } else if (maxDistance >= 0.0001) {
+                      zoom = 14;
+                    } else if (maxDistance >= 0.00001) {
+                      zoom = 15;
+                    } else if (maxDistance < 0.00001) {
+                      zoom = 18;
+                    }
+                    map.setView(new L.LatLng((minY + maxY) / 2, (minX + maxX) / 2), zoom);
+                  }
+                }, 100);
+              }
+            })
+            .fail(function(jqxhr, textStatus, error) {
+              var err = textStatus + ", " + error;
+              console.log("Request Failed: " + err);
+              console.log(jqxhr);
+            });
+        }
       }
     </script>
   </body>
