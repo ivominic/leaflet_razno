@@ -961,7 +961,7 @@
                     version: "2.0",
                     request: "GetFeature",
                     typeName: name_type,
-                    outputFormat: "text/javascript",
+                    outputFormat: "CSV",
                     format_options: "callback:getJson",
                     SrsName: "EPSG:4326"
                   };
@@ -971,7 +971,7 @@
                     version: "2.0",
                     request: "GetFeature",
                     typeName: name_type,
-                    outputFormat: "text/javascript",
+                    outputFormat: "CSV",
                     format_options: "callback:getJson",
                     cql_filter: filter_cql,
                     SrsName: "EPSG:4326"
@@ -981,15 +981,13 @@
                 var parameters = L.Util.extend(defaultParameters);
                 var URL = owsrootUrl + L.Util.getParamString(parameters);
                 var WFSLayer = null;
-                var ajax = $.ajax({
-                  url: URL,
-                  dataType: "jsonp",
-                  jsonpCallback: "getJson",
-                  success: function(response) {
-                    var fajl = L.geoJson(response).toGeoJSON();
-                    DownloadJsonData(fajl, "csv", true, obj.name);
-                  }
-                });
+                var link = document.createElement("a");
+                link.download = obj.layer._name;
+                link.href = URL;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                delete link;
               }, 1000 * brojac);
             }
           }
