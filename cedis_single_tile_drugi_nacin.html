@@ -27,7 +27,6 @@
     <script src="js/FileSaver.js"></script>
     <script src="js/opstine.js"></script>
     <script src="js/atributi.sifarnik.js"></script>
-    <script src="js/shpwrite1.js"></script>
     <style type="text/css">
       html,
       body,
@@ -215,7 +214,7 @@
       var source = L.WMS.source(url, options1);
       var source1 = L.WMS.source(url, options2);
       var planinica = source.getLayer("winsoft:stubovi", { cql_filter: "INCLUDE", transparent: true }).addTo(map);
-      var jezero = source1.getLayer("winsoft:jezero", { cql_filter: "INCLUDE" }).addTo(map);
+      var jezero = source1.getLayer("winsoft:vodovi", { cql_filter: "INCLUDE" }).addTo(map);
 
       /*var planinica = L.WMS.overlay(url, {
         layers: "winsoft:planinica", //"winsoft:stubovi",
@@ -896,9 +895,16 @@
         var arrData = typeof JSONData.features != "object" ? JSON.parse(JSONData.features) : JSONData.features;
         var CSV = "";
         if (ShowLabel) {
-          var row = "";
-          for (var index in arrData[0]) {
+          var row = "geom_type,coordinates,";
+          console.log(arrData[0].properties);
+          /*for (var index in arrData[0]) {
             row += index + ",";
+            console.log(row);
+          }*/
+
+          for (var index in arrData[0].properties) {
+            console.log(index);
+            row += '"' + arrData[0].properties[index] + '",';
           }
           row = row.slice(0, -1);
           CSV += row + "\r\n";
