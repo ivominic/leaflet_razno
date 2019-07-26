@@ -19,6 +19,9 @@
       integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
       crossorigin="anonymous"
     ></script>
+    <script src="js/leaflet.browser.print.js"></script>
+    <script src="js/leaflet.browser.print.sizes.js"></script>
+    <script src="js/leaflet.browser.print.utils.js"></script>
     <script src="js/leaflet-hash.js"></script>
     <script src="js/leaflet.draw.js"></script>
     <script src="js/bootstrap-multiselect.js"></script>
@@ -201,6 +204,9 @@
       var url = "http://localhost/geoserver/wms";
       var owsrootUrl = "http://localhost/geoserver/ows";
 
+      var optionsOSM = { transparent: "true", format: "image/png" };
+      var source = L.WMS.source("http://{s}.tile.osm.org/{z}/{x}/{y}.png", optionsOSM);
+
       var osmLayer = L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
       // var overlay = L.WMS.overlay(url, {
       //   layers: "winsoft:stubovi",
@@ -215,6 +221,8 @@
       var source1 = L.WMS.source(url, options2);
       var planinica = source.getLayer("winsoft:stubovi", { cql_filter: "INCLUDE", transparent: true }).addTo(map);
       var jezero = source1.getLayer("winsoft:vodovi", { cql_filter: "INCLUDE" }).addTo(map);
+
+      var podloga = jezero;
 
       /*var planinica = L.WMS.overlay(url, {
         layers: "winsoft:planinica", //"winsoft:stubovi",
@@ -401,6 +409,22 @@
         //var shape_for_db = JSON.stringify(shape);
         //console.log("shape", shape);
         //console.log(shape_for_db);
+      });
+
+      var print_control = L.control
+        .browserPrint({
+          printLayer: podloga, //L.tileLayer(podloga._url, podloga.options),
+          closePopupsOnPrint: false,
+          printModes: [
+            L.control.browserPrint.mode.landscape(),
+            "PORTrait",
+            L.control.browserPrint.mode.auto("Auto", "B4"),
+            L.control.browserPrint.mode.custom("Selektuj oblast za štampu", "B5")
+          ]
+        })
+        .addTo(map);
+      map.on("baselayerchange", function(e) {
+        print_control.options.printLayer = e.layer;
       });
 
       function pozivDownload() {
