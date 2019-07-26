@@ -151,12 +151,13 @@
       // (split from identify() to faciliate use outside of map events)
       var params = this.getFeatureInfoParams(point, layers),
         url = this._url + L.Util.getParamString(params, this._url);
-
+      console.log("url", url);
       this.showWaiting();
       this.ajax(url, done);
 
       function done(result) {
         this.hideWaiting();
+        console.log("odavde", result);
         var text = this.parseFeatureInfo(result, url);
         callback.call(this, latlng, text);
       }
@@ -191,6 +192,7 @@
         X: Math.round(point.x),
         Y: Math.round(point.y)
       };
+      console.log(layers.length, layers);
       return L.extend({}, wmsParams, infoParams);
     },
 
@@ -206,10 +208,18 @@
 
     showFeatureInfo: function(latlng, info) {
       // Hook to handle displaying parsed AJAX response to the user
-      if (!this._map) {
-        return;
+      if (!info.includes("<tr>")) {
+        console.log("nema");
+        //console.log("this", this);
+        //map.setView(new L.LatLng(14, 21));
+        //this._map
+      } else {
+        console.log("ima. Ovdje tek prikaz podataka");
+        if (!this._map) {
+          return;
+        }
+        this._map.openPopup(info, latlng);
       }
-      this._map.openPopup(info, latlng);
     },
 
     showWaiting: function() {

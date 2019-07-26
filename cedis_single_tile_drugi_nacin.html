@@ -30,6 +30,8 @@
     <script src="js/FileSaver.js"></script>
     <script src="js/opstine.js"></script>
     <script src="js/atributi.sifarnik.js"></script>
+    <script src="js/Control.Geocoder.js"></script>
+    <link href="css/Control.Geocoder.css" rel="stylesheet" />
     <style type="text/css">
       html,
       body,
@@ -288,6 +290,17 @@
         Jezero: ""
       };
 
+      map.on("click", function(e) {
+        console.log("klik");
+      });
+
+      var geocoder = L.Control.Geocoder.nominatim(),
+        control = L.Control.geocoder({
+          geocoder: geocoder
+        }).addTo(map),
+        marker;
+      console.log("Geocoder", map);
+
       var kmlControl = L.Control.extend({
         options: {
           position: "bottomright"
@@ -413,7 +426,7 @@
 
       var print_control = L.control
         .browserPrint({
-          printLayer: podloga, //L.tileLayer(podloga._url, podloga.options),
+          //printLayer: podloga, //L.tileLayer(podloga._url, podloga.options),
           closePopupsOnPrint: false,
           printModes: [
             L.control.browserPrint.mode.landscape(),
@@ -894,7 +907,6 @@
                 var parameters = L.Util.extend(defaultParameters);
                 var URL = owsrootUrl + L.Util.getParamString(parameters);
                 var WFSLayer = null;
-                console.log(URL);
 
                 var link = document.createElement("a");
                 link.download = obj.layer._name;
@@ -903,74 +915,10 @@
                 link.click();
                 document.body.removeChild(link);
                 delete link;
-
-                /*var ajax = $.ajax({
-                  url: URL,
-                  dataType: "jsonp",
-                  jsonpCallback: "getJson",
-                  success: function(response) {
-                    console.log(response);
-                    //var fajl = L.geoJson(response).toGeoJSON();
-                    console.log(fajl);
-                    //shpwrite.download(fajl, shpOptions);
-                  }
-                });*/
               }, 10000 * brojac);
             }
           }
         });
-      }
-
-      function DownloadJsonData(JSONData, FileTitle, ShowLabel, FileName) {
-        var arrData = typeof JSONData.features != "object" ? JSON.parse(JSONData.features) : JSONData.features;
-        var CSV = "";
-        if (ShowLabel) {
-          var row = "geom_type,coordinates,";
-          console.log(arrData[0].properties);
-          /*for (var index in arrData[0]) {
-            row += index + ",";
-            console.log(row);
-          }*/
-
-          for (var index in arrData[0].properties) {
-            console.log(index);
-            row += '"' + arrData[0].properties[index] + '",';
-          }
-          row = row.slice(0, -1);
-          CSV += row + "\r\n";
-        }
-        for (var i = 0; i < arrData.length; i++) {
-          var row = arrData[i].geometry.type + ",";
-          for (var index in arrData[i].geometry.coordinates) {
-            row += '"' + arrData[i].geometry.coordinates[index] + '",';
-          }
-          for (var index in arrData[i].properties) {
-            row += '"' + arrData[i].properties[index] + '",';
-          }
-          row.slice(0, row.length - 1);
-          CSV += row + "\r\n";
-        }
-        if (CSV == "") {
-          alert("Invalid data");
-          return;
-        }
-        var blob = new Blob([CSV], {
-          type: "text/csv;charset=utf-8;"
-        });
-        if (navigator.msSaveBlob) {
-          navigator.msSaveBlob(blob, FileName);
-        } else {
-          var link = document.createElement("a");
-          if (link.download !== undefined) {
-            var url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.style = "visibility:hidden";
-            link.download = FileName + ".csv";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          }
-        }
       }
 
       function csvDownload() {
@@ -1064,6 +1012,10 @@
 
                 var parameters = L.Util.extend(defaultParameters);
                 var URL = owsrootUrl + L.Util.getParamString(parameters);
+                var minX = 0,
+                  maxX = 0,
+                  minY = 0,
+                  maxY = 0;
                 var ajax = $.ajax({
                   url: URL,
                   dataType: "jsonp",
@@ -1073,10 +1025,6 @@
                     console.log(response.features);
                     if (response.features.length > 0 && response.features.length <= 5) {
                       blnZumirano = true;
-                      var minX = 0,
-                        maxX = 0,
-                        minY = 0,
-                        maxY = 0;
                       response.features.forEach(function(feature) {
                         //console.log(feature.geometry.coordinates);
                         for (var i = 0; i < feature.geometry.coordinates.length; i++) {
@@ -1150,6 +1098,10 @@
 
           var parameters = L.Util.extend(defaultParameters);
           var URL = owsrootUrl + L.Util.getParamString(parameters);
+          var minX = 0,
+            maxX = 0,
+            minY = 0,
+            maxY = 0;
           var ajax = $.ajax({
             url: URL,
             dataType: "jsonp",
@@ -1158,10 +1110,6 @@
             .done(function(response) {
               if (response.features.length > 0 && response.features.length <= 5) {
                 blnZumirano = true;
-                var minX = 0,
-                  maxX = 0,
-                  minY = 0,
-                  maxY = 0;
                 response.features.forEach(function(feature) {
                   for (var i = 0; i < feature.geometry.coordinates.length; i++) {
                     if (minX === 0) {
@@ -1210,6 +1158,20 @@
             });
         }
       }
+
+      var MySource = L.WMS.Source.extend({
+        ajax: function(url, callback) {
+          $.ajax(url, {
+            context: this,
+            success: function(result) {
+              callback.call(this, result);
+            }
+          });
+        },
+        showFeatureInfo: function(latlng, info) {
+          $(".output").html(info);
+        }
+      });
     </script>
   </body>
 </html>
