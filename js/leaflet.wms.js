@@ -151,13 +151,11 @@
       // (split from identify() to faciliate use outside of map events)
       var params = this.getFeatureInfoParams(point, layers),
         url = this._url + L.Util.getParamString(params, this._url);
-      console.log("url", url);
       this.showWaiting();
       this.ajax(url, done);
 
       function done(result) {
         this.hideWaiting();
-        console.log("odavde", result);
         var text = this.parseFeatureInfo(result, url);
         callback.call(this, latlng, text);
       }

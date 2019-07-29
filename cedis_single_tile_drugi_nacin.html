@@ -291,7 +291,26 @@
       };
 
       map.on("click", function(e) {
-        console.log("klik");
+        var trenutniSadrzaj = map.openPopup("", e.latlng);
+        geocoder.reverse(e.latlng, map.options.crs.scale(map.getZoom()), function(results) {
+          var r = results[0];
+          if (r) {
+            var krajnjiSadrzaj = map.openPopup(trenutniSadrzaj._popup._content + r.html + "<br/>" + r.center || r.name + "<br/>" + r.center, e.latlng);
+            //console.log("aaa", krajnjiSadrzaj._popup._content);
+            /*if (marker) {
+              marker
+                .setLatLng(r.center)
+                .setPopupContent(r.html + "<br/>" + r.center || r.name + "<br/>" + r.center)
+                .addTo(map)
+                .openPopup();
+            } else {
+              marker = L.marker(r.center)
+                .bindPopup(r.name)
+                .addTo(map)
+                .openPopup();
+            }*/
+          }
+        });
       });
 
       var geocoder = L.Control.Geocoder.nominatim(),
