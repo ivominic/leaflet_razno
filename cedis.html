@@ -992,6 +992,7 @@
 
                 var parameters = L.Util.extend(defaultParameters);
                 var URL = owsrootUrl + L.Util.getParamString(parameters);
+                console.log("url", URL);
                 var WFSLayer = null;
                 var ajax = $.ajax({
                   url: URL,

@@ -391,7 +391,7 @@
         minY = 0,
         maxX = 0,
         maxY = 0,
-        blnFokus = true,
+        blnFokus = false,
         drawLayer;
 
       var hash = new L.Hash(map);
@@ -430,9 +430,9 @@
           }
           koordinateFigure += figura.getLatLngs()[0][0].lng + " " + figura.getLatLngs()[0][0].lat;
           if (temp_poligon === "") {
-            temp_poligon = "INTERSECTS(geom, POLYGON((" + koordinateFigure + ")))";
+            temp_poligon = "INTERSECTS(Geometry, POLYGON((" + koordinateFigure + ")))";
           } else {
-            temp_poligon += " OR INTERSECTS(geom, POLYGON((" + koordinateFigure + ")))";
+            temp_poligon += " OR INTERSECTS(Geometry, POLYGON((" + koordinateFigure + ")))";
           }
         }
         //console.log(temp_poligon1);
@@ -903,7 +903,7 @@
                 if (filter_cql === "") {
                   defaultParameters = {
                     service: "WFS",
-                    version: "2.0",
+                    version: "1.0.0",
                     request: "GetFeature",
                     typeName: name_type,
                     outputFormat: "SHAPE-ZIP",
@@ -913,7 +913,7 @@
                 } else {
                   defaultParameters = {
                     service: "WFS",
-                    version: "2.0",
+                    version: "1.0.0",
                     request: "GetFeature",
                     typeName: name_type,
                     outputFormat: "SHAPE-ZIP",
@@ -955,7 +955,7 @@
                 if (filter_cql === "") {
                   defaultParameters = {
                     service: "WFS",
-                    version: "2.0",
+                    version: "1.0.0",
                     request: "GetFeature",
                     typeName: name_type,
                     outputFormat: "CSV",
@@ -965,7 +965,7 @@
                 } else {
                   defaultParameters = {
                     service: "WFS",
-                    version: "2.0",
+                    version: "1.0.0",
                     request: "GetFeature",
                     typeName: name_type,
                     outputFormat: "CSV",
