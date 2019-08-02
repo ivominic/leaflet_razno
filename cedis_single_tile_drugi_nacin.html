@@ -221,8 +221,14 @@
       var options2 = { transparent: "true", format: "image/png", info_format: "text/html", feature_count: "5" };
       var source = L.WMS.source(url, options1);
       var source1 = L.WMS.source(url, options2);
-      var planinica = source.getLayer("winsoft:stubovi", { cql_filter: "INCLUDE", transparent: true }).addTo(map);
-      var jezero = source1.getLayer("winsoft:vodovi", { cql_filter: "INCLUDE" }).addTo(map);
+      var jezero = source1.getLayer("winsoft:Katastar", { cql_filter: "INCLUDE" }).addTo(map);
+      var planinica = source
+        .getLayer("winsoft:stubovi,winsoft:planinica,winsoft:jezero,winsoft:vodovi", { cql_filter: "INCLUDE", transparent: true })
+        .addTo(map);
+
+      //jezero.setZIndex(1);
+      //planinica.setZIndex(2);
+      jezero.bringToBack();
 
       var podloga = jezero;
 
@@ -248,8 +254,8 @@
       };
       var wmsLayers = {
         //Stubovi: overlay,
-        Planinica: planinica,
-        Jezero: jezero
+        Jezero: jezero,
+        Planinica: planinica
       };
 
       $("#ddlLejer").on("change", function() {
@@ -416,6 +422,7 @@
         drawLayer.bindPopup(type);
         drawnItems.addLayer(drawLayer);
         map.addLayer(drawnItems);
+        map.preventDefault();
       });
 
       //Za filter po poligonima. Pošto u CEDISu ne može da se pristupi koordinatama na način kako sam originalno uradio
