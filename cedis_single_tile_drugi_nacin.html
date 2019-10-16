@@ -144,9 +144,9 @@
           <div class="form-group">
             <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">Pretraga</button>
             <button type="button" class="btn btn-danger" id="btnRestart" onclick="location.reload(true)">Restart</button>
-            <button type="button" class="btn btn-info" id="btnKML" onclick="eksportKML()">KML</button>
-            <button type="button" class="btn btn-info" id="btnSHP" onclick="shpDownload()">SHP</button>
-            <button type="button" class="btn btn-info" id="btnCSV" onclick="setZoom()">CSV</button>
+            <button type="button" class="btn btn-info" id="btnKML" onclick="exportVector('KML')">KML</button>
+            <button type="button" class="btn btn-info" id="btnSHP" onclick="exportVector('SHAPE-ZIP')">SHP</button>
+            <button type="button" class="btn btn-info" id="btnCSV" onclick="exportVector('CSV')">CSV</button>
             <button type="button" class="btn btn-info" id="btnKopiranjeLinka" onclick="copyToClipboard(url_copy)">Link</button>
 
             <table id="tblAtributi" class=" table order-list table-responsive">
@@ -188,8 +188,6 @@
         includeSelectAllOption: true
       });
 
-      var mapaLejera = new Map([["stubovi", "Planinica"], ["jezero", "Jezero"], ["treci", "Treci"]]);
-
       var atributiDdl = {
         Planinica: planinicaAtributi,
         Jezero: vodoviAtributi
@@ -203,8 +201,8 @@
 
       popuniDdlVodova();
 
-      var url = "http://localhost/geoserver/wms";
-      var owsrootUrl = "http://localhost/geoserver/ows";
+      var url = "http://localhost:8088/geoserver/wms";
+      var owsrootUrl = "http://localhost:8088/geoserver/ows";
 
       var optionsOSM = { transparent: "true", format: "image/png" };
       var source = L.WMS.source("http://{s}.tile.osm.org/{z}/{x}/{y}.png", optionsOSM);
@@ -222,9 +220,7 @@
       var source = L.WMS.source(url, options1);
       var source1 = L.WMS.source(url, options2);
       var jezero = source1.getLayer("winsoft:Katastar", { cql_filter: "INCLUDE" }).addTo(map);
-      var planinica = source
-        .getLayer("winsoft:stubovi,winsoft:planinica,winsoft:jezero,winsoft:vodovi", { cql_filter: "INCLUDE", transparent: true })
-        .addTo(map);
+      var planinica = source.getLayer("winsoft:stubovi,winsoft:planinica,winsoft:jezero,winsoft:vodovi", { cql_filter: "INCLUDE", transparent: true }).addTo(map);
 
       //jezero.setZIndex(1);
       //planinica.setZIndex(2);
@@ -587,11 +583,7 @@
               obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer._source._overlay.setParams({ cql_filter: cql_param });
             }
           } else {
-            lejerFilter !== "null" &&
-              lejerFilter !== "" &&
-              obj.overlay &&
-              lejeri._map.hasLayer(obj.layer) &&
-              obj.layer._source._overlay.setParams({ cql_filter: lejerFilter });
+            lejerFilter !== "null" && lejerFilter !== "" && obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer._source._overlay.setParams({ cql_filter: lejerFilter });
           }
         });
 
@@ -640,9 +632,7 @@
           })
             .promise()
             .done(function() {
-              temp_opstina !== "" &&
-                (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) &&
-                (temp_opstina = "opstina IN (" + temp_opstina + ")");
+              temp_opstina !== "" && (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) && (temp_opstina = "opstina IN (" + temp_opstina + ")");
             });
         }
       }
@@ -885,6 +875,68 @@
         document.body.removeChild(element);
         window.URL.revokeObjectURL(url);
         element.remove();
+      }
+
+      function exportVector(formatFajla) {
+        var brojac = -1;
+        lejeri._layers.forEach(function(obj) {
+          if (obj.overlay) {
+            if (lejeri._map.hasLayer(obj.layer)) {
+              brojac++;
+              setTimeout(function() {
+                if (formatFajla === "SHAPE-ZIP") {
+                  var shpOptions = {
+                    folder: obj.name,
+                    types: {
+                      point: "points-" + obj.name,
+                      polygon: "polygons-" + obj.name,
+                      line: "lines-" + obj.name
+                    }
+                  };
+                }
+                var name_type = obj.layer._name;
+                var filter_cql = obj.layer._source._overlay.wmsParams.cql_filter;
+                var defaultParameters;
+                (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
+
+                if (filter_cql === "") {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "1.0.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: formatFajla,
+                    format_options: "callback:getJson",
+                    SrsName: "EPSG:4326"
+                  };
+                } else {
+                  defaultParameters = {
+                    service: "WFS",
+                    version: "1.0.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: formatFajla,
+                    format_options: "callback:getJson",
+                    cql_filter: filter_cql,
+                    SrsName: "EPSG:4326"
+                  };
+                }
+
+                var parameters = L.Util.extend(defaultParameters);
+                var URL = owsrootUrl + L.Util.getParamString(parameters);
+                var WFSLayer = null;
+
+                var link = document.createElement("a");
+                link.download = obj.layer._name;
+                link.href = URL;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                delete link;
+              }, 10000 * brojac);
+            }
+          }
+        });
       }
 
       function shpDownload() {

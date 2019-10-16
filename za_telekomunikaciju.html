@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mapa</title>
+    <link rel="stylesheet" href="/static/leaflet/leaflet.css" />
+    <link
+      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+      integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/static/lib/css/leaflet.draw.css" />
+    <link rel="stylesheet" href="/static/lib/css/leaflet-plugins.min.css" type="text/css" />
+    <link rel="stylesheet" href="/static/lib/css/L.Control.Pan.css" type="text/css" />
+    <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
+    <script src="/static/lib/js/leaflet.wms.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.15/proj4-src.js"></script>
+    <script src="/static/lib/js/leaflet-plugins.min.js" type="text/javascript"></script>
+    <script src="/static/leaflet/leaflet.extras.js" type="text/javascript"></script>
+    <script src="/static/lib/js/L.Control.Pan.js"></script>
+    <script src="/static/lib/js/printjs/leaflet.browser.print.js"></script>
+    <script src="/static/lib/js/printjs/leaflet.browser.print.sizes.js"></script>
+    <script src="/static/lib/js/printjs/leaflet.browser.print.utils.js"></script>
+    <script src="/static/lib/js/printjs/leaflet.draw.js"></script>
+    <script src="/static/lib/js/leaflet-hash.js"></script>
+    <script src="https://api.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.43.0/L.Control.Locate.min.js"></script>
+    <link href="https://api.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.43.0/L.Control.Locate.mapbox.css' rel='stylesheet" />
+    <script src="/static/lib/js/Control.Geocoder.js"></script>
+    <link href="/static/lib/css/Control.Geocoder.css' rel='stylesheet" />
+
+    <link rel="stylesheet" href="/static/lib/css/leaflet-sidebar.css" />
+    <script src="/static/lib/js/leaflet-sidebar.js"></script>
+    <script src="/static/lib/js/popper.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="/static/lib/js/bootstrap-multiselect.js"></script>
+    <link href="/static/lib/css/bootstrap-multiselect.css" rel="stylesheet" />
+    <script src="/static/lib/js/FileSaver.js"></script>
+    <script src="/static/lib/js/atributi.sifarnik.js"></script>
+
+    <style type="text/css">
+      html,
+      body,
+      #map {
+        margin: 0px;
+        height: 100%;
+        width: 100%;
+        font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
+      }
+      .hidden {
+        display: none;
+        visibility: hidden;
+      }
+      body {
+        padding: 0;
+        margin: 0;
+      }
+      .btn-sm {
+        height: 18px;
+        padding: 0px 3px;
+        font-size: 12px;
+        border-radius: 3px;
+      }
+
+      #map {
+        height: 100%;
+      }
+      .leaflet-control-locate a {
+        padding: 8px 0 0 0px !important;
+      }
+      .leaflet-popup-content {
+        overflow: auto !important;
+      }
+      .leaflet-control-custom {
+        border: 2px solid rgba(0, 0, 0, 0.2);
+        background-clip: padding-box;
+        padding-top: 18%;
+        font-size: 10px;
+        padding-left: 6%;
+        cursor: pointer;
+      }
+
+      .material-switch > input[type="checkbox"] {
+        display: none;
+      }
+
+      .material-switch > label {
+        cursor: pointer;
+        height: 0px;
+        position: relative;
+        width: 40px;
+      }
+
+      .material-switch > label::before {
+        background: rgb(232, 232, 232) !important;
+        box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        content: "";
+        height: 16px;
+        margin-top: -8px;
+        position: absolute;
+        opacity: 0.3;
+        transition: all 0.4s ease-in-out;
+        width: 40px;
+      }
+      .material-switch > label::after {
+        background: rgb(0, 116, 217) !important;
+        border-radius: 16px;
+        box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+        content: "";
+        height: 24px;
+        left: -4px;
+        margin-top: -8px;
+        position: absolute;
+        top: -4px;
+        transition: all 0.3s ease-in-out;
+        width: 24px;
+      }
+      .material-switch > input[type="checkbox"]:checked + label::before {
+        background: rgb(232, 232, 232) !important;
+        opacity: 0.5;
+      }
+      .material-switch > input[type="checkbox"]:checked + label::after {
+        background: rgb(0, 116, 217) !important;
+        left: 20px;
+      }
+
+      .fa.fa-bars.active {
+        padding: 9px 3px 0 0 !important;
+      }
+      .fa.fa-caret-left {
+        padding: 9px 3px 0 0 !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="sidebar" class="leaflet-sidebar collapsed">
+      <div class="leaflet-sidebar-tabs">
+        <ul role="tablist">
+          <li>
+            <a href="#home" role="tab"><em class="fa fa-bars active"></em></a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="leaflet-sidebar-content">
+        <div class="leaflet-sidebar-pane" id="home">
+          <h1 class="leaflet-sidebar-header">
+            Pretraga
+            <span class="leaflet-sidebar-close"><em class="fa fa-caret-left"></em></span>
+          </h1>
+
+          <div class="container">
+            <div class="material-switch" style="margin: 0 0 14px 0;padding-top: 18px">
+              <span style="float:left; text-align: right" class="col-sm-5">Filter</span>
+              <div class="material-switch col-sm-2" style="float: left; margin-top: 8px">
+                <input id="switchAkcija" name="switchAkcija" type="checkbox" />
+                <label for="switchAkcija" class="label-default"></label>
+              </div>
+              <span style="text-align: left" class="col-sm-5">Fokus</span>
+            </div>
+
+            <div>
+              <label for="opstina">Odaberite opštinu:</label><br />
+              <select id="opstina" multiple="multiple">
+                <option value="Andrijevica" selected="selected">Andrijevica</option>
+                <option value="Bar" selected="selected">Bar</option>
+                <option value="Berane" selected="selected">Berane</option>
+                <option value="Bijelo Polje" selected="selected">Bijelo Polje</option>
+                <option value="Budva" selected="selected">Budva</option>
+                <option value="Cetinje" selected="selected">Cetinje</option>
+                <option value="Danilovgrad" selected="selected">Danilovgrad</option>
+                <option value="Herceg Novi" selected="selected">Herceg Novi</option>
+                <option value="Kolašin" selected="selected">Kolašin</option>
+                <option value="Kotor" selected="selected">Kotor</option>
+                <option value="Mojkovac" selected="selected">Mojkovac</option>
+                <option value="Nikšić" selected="selected">Nikšić</option>
+                <option value="Plav" selected="selected">Plav</option>
+                <option value="Plužine" selected="selected">Plužine</option>
+                <option value="Pljevlja" selected="selected">Pljevlja</option>
+                <option value="Podgorica" selected="selected">Podgorica</option>
+                <option value="Rožaje" selected="selected">Rožaje</option>
+                <option value="Šavnik" selected="selected">Šavnik</option>
+                <option value="Tivat" selected="selected">Tivat</option>
+                <option value="Ulcinj" selected="selected">Ulcinj</option>
+                <option value="Žabljak" selected="selected">Žabljak</option>
+              </select>
+            </div>
+            <div id="divVod">
+              <label for="vod">Odaberite dalekovode:</label>
+              <select id="vod" multiple="multiple"> </select>
+            </div>
+            <div>
+              <label for="ddlLejer">Odaberite lejer:</label><br />
+              <select id="ddlLejer" class="form-control">
+                <option value="geonode:opgw_optika">OPGW Optika</option>
+                <option value="geonode:opgw_spojnica">OPGW Spojnica</option>
+                <option value="geonode:opgw_kabkan">OPGW Kabkan</option>
+                <option value="geonode:opgw_cijev">OPGW Cijev</option>
+                <option value="geonode:opgw_rezerva">OPGW Rezerva</option>
+                <option value="geonode:opgw_zok">OPGW ZOK</option>
+                <option value="geonode:opgw_okno">OPGW Okno</option>
+                <option value="geonode:adss_jkp_optika">ADSS JKP Optika</option>
+                <option value="geonode:adss_ts">ADSS TS</option>
+                <option value="geonode:adss_zok">ADSS ZOK</option>
+                <option value="geonode:adss_stub">ADSS Stub</option>
+                <option value="geonode:adss_spojnica">ADSS Spojnica</option>
+                <option value="geonode:adss_spliter">ADSS Spliter</option>
+                <option value="geonode:adss_sekundarna">ADSS Sekundarna</option>
+                <option value="geonode:adss_rezerva">ADSS Rezerva</option>
+                <option value="geonode:adss_primarna">ADSS Primarna</option>
+                <option value="geonode:adss_okno">ADSS Okno</option>
+                <option value="geonode:adss_kabkan">ADSS Kabkan</option>
+                <option value="geonode:adss_jkp_stubovi">ADSS JKP Stubovi</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="atribut">Odaberite atribut pretrage:</label>
+              <select class="form-control" id="atribut">
+                <option value="name">Name</option>
+                <option value="description">Description</option>
+              </select>
+            </div>
+            <div class="form-group input-group">
+              <input type="text" class="form-control" id="vrijednost" placeholder="Vrijednost atributa pretrage" />
+              <div class="input-group-append">
+                <button type="button" class="btn btn-info" id="btnAtribut">
+                  Dodaj atribut
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <button type="button" class="btn btn-success" id="btnPretraga">Pretraga</button>
+              <button type="button" class="btn btn-danger" id="btnRestart">Restart</button>
+              <button type="button" class="btn btn-info" id="btnKopiranjeLinka">Link</button>
+
+              <table id="tblAtributi" class=" table order-list table-responsive">
+                <thead>
+                  <tr>
+                    <th>Lejer</th>
+                    <th>Atribut</th>
+                    <th>Vrijednost</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="leaflet-sidebar-pane" id="messages">
+          <h1 class="leaflet-sidebar-header">
+            Messages<span class="leaflet-sidebar-close"><em class="fa fa-caret-left"></em></span>
+          </h1>
+        </div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      $(document).ready(function() {
+        var domainUrl = location.origin,
+          owsrootUrl = domainUrl + "/geoserver/ows",
+          wmsrootUrl = domainUrl + "/geoserver/wms",
+          blnFokus = false,
+          wmsLayer = null;
+
+        var map = L.map("map").setView(new L.LatLng(42.73, 19.55), 9);
+        var geocoder = L.Control.Geocoder.nominatim(),
+          control = L.Control.geocoder({
+            geocoder: geocoder
+          }).addTo(map),
+          marker;
+
+        map.on("click", function(e) {
+          var trenutniSadrzaj = map.openPopup("", e.latlng);
+          geocoder.reverse(e.latlng, map.options.crs.scale(map.getZoom()), function(results) {
+            var r = results[0];
+            if (r) {
+              //map.openPopup(trenutniSadrzaj._popup._content + r.html + "<br/>" + r.center || r.name + "<br/>" + r.center, e.latlng);
+              map.openPopup(trenutniSadrzaj._popup._content + r.html + "<br/>" + e.latlng || r.name + "<br/>" + e.latlng, e.latlng);
+            }
+          });
+        });
+
+        var evtLayer = [];
+
+        var scale_bar = L.control.scale().addTo(map);
+        var fs = L.control.fullscreen().addTo(map);
+        var locateMe = L.control
+          .locate({
+            strings: {
+              title: "Locate me"
+            }
+          })
+          .addTo(map);
+
+        var nb = L.control.navbar().addTo(map);
+        var podloga;
+
+        var prazanLejerMapa = L.tileLayer("", {});
+        var osm = L.tileLayer("https://{s}.tile.osm.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+        });
+        var googleSat = L.tileLayer("https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
+          maxZoom: 19,
+          subdomains: ["mt0", "mt1", "mt2", "mt3"]
+        });
+        var googleTerrain = L.tileLayer("https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}", {
+          maxZoom: 20,
+          subdomains: ["mt0", "mt1", "mt2", "mt3"]
+        });
+        var googleHybrid = L.tileLayer("https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", {
+          maxZoom: 20,
+          subdomains: ["mt0", "mt1", "mt2", "mt3"]
+        });
+        var googleStreets = L.tileLayer("https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
+          maxZoom: 20,
+          subdomains: ["mt0", "mt1", "mt2", "mt3"]
+        });
+
+        var base_maps = {
+          "BEZ PODLOGE": prazanLejerMapa,
+          OpenStreetMap: osm,
+          SATELLITE: googleSat,
+          TERRAIN: googleTerrain,
+          HYBRID: googleHybrid,
+          ROAD: googleStreets
+        };
+
+        var optionsDigitalniKatastar = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsOpgwOptika = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsOpgwSpojnica = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsOpgwKabkan = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsOpgwCijev = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsOpgwRezerva = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsOpgwZok = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsOpgwOkno = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsAdssJkpOptika = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsAdssTs = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsAdssZok = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsAdssStub = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsAdssSpojnica = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsAdssSpliter = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsAdssSekundarna = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsAdssRezerva = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsAdssPrimarna = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsAdssOkno = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsAdssKabkan = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 },
+          optionsAdssJkpStubovi = { transparent: true, format: "image/png", info_format: "text/html", feature_count: "5", maxZoom: 20 };
+
+        var sourceDigitalniKatastar = L.WMS.source(wmsrootUrl, optionsDigitalniKatastar),
+          sourceOpgwOptika = L.WMS.source(wmsrootUrl, optionsOpgwOptika),
+          sourceOpgwSpojnica = L.WMS.source(wmsrootUrl, optionsOpgwSpojnica),
+          sourceOpgwKabkan = L.WMS.source(wmsrootUrl, optionsOpgwKabkan),
+          sourceOpgwCijev = L.WMS.source(wmsrootUrl, optionsOpgwCijev),
+          sourceOpgwRezerva = L.WMS.source(wmsrootUrl, optionsOpgwRezerva),
+          sourceOpgwZok = L.WMS.source(wmsrootUrl, optionsOpgwZok),
+          sourceOpgwOkno = L.WMS.source(wmsrootUrl, optionsOpgwOkno),
+          sourceAdssJkpOptika = L.WMS.source(wmsrootUrl, optionsAdssJkpOptika),
+          sourceAdssTs = L.WMS.source(wmsrootUrl, optionsAdssTs),
+          sourceAdssZok = L.WMS.source(wmsrootUrl, optionsAdssZok),
+          sourceAdssStub = L.WMS.source(wmsrootUrl, optionsAdssStub),
+          sourceAdssSpojnica = L.WMS.source(wmsrootUrl, optionsAdssSpojnica),
+          sourceAdssSpliter = L.WMS.source(wmsrootUrl, optionsAdssSpliter),
+          sourceAdssSekundarna = L.WMS.source(wmsrootUrl, optionsAdssSekundarna),
+          sourceAdssRezerva = L.WMS.source(wmsrootUrl, optionsAdssRezerva),
+          sourceAdssPrimarna = L.WMS.source(wmsrootUrl, optionsAdssPrimarna),
+          sourceAdssOkno = L.WMS.source(wmsrootUrl, optionsAdssOkno),
+          sourceAdssKabkan = L.WMS.source(wmsrootUrl, optionsAdssKabkan),
+          sourceAdssJkpStubovi = L.WMS.source(wmsrootUrl, optionsAdssJkpStubovi);
+
+        var digitalniKatastar = sourceDigitalniKatastar.getLayer("geonode:Digitalni_Katastarski_Plan_CG"),
+          opgw_optika = sourceOpgwOptika.getLayer("geonode:opgw_optika", { cql_filter: "INCLUDE", transparent: true }),
+          opgw_spojnica = sourceOpgwSpojnica.getLayer("geonode:opgw_spojnica", { cql_filter: "INCLUDE", transparent: true }),
+          opgw_kabkan = sourceOpgwKabkan.getLayer("geonode:opgw_kabkan", { cql_filter: "INCLUDE", transparent: true }),
+          opgw_cijev = sourceOpgwCijev.getLayer("geonode:opgw_cijev", { cql_filter: "INCLUDE", transparent: true }),
+          opgw_rezerva = sourceOpgwRezerva.getLayer("geonode:opgw_rezerva", { cql_filter: "INCLUDE", transparent: true }),
+          opgw_zok = sourceOpgwZok.getLayer("geonode:opgw_zok", { cql_filter: "INCLUDE", transparent: true }),
+          opgw_okno = sourceOpgwOkno.getLayer("geonode:opgw_okno", { cql_filter: "INCLUDE", transparent: true }),
+          adss_jkp_optika = sourceAdssJkpOptika.getLayer("geonode:adss_jkp_optika", { cql_filter: "INCLUDE", transparent: true }).addTo(map),
+          adss_ts = sourceAdssTs.getLayer("geonode:adss_ts", { cql_filter: "INCLUDE", transparent: true }).addTo(map),
+          adss_zok = sourceAdssZok.getLayer("geonode:adss_zok", { cql_filter: "INCLUDE", transparent: true }).addTo(map),
+          adss_stub = sourceAdssStub.getLayer("geonode:adss_stub", { cql_filter: "INCLUDE", transparent: true }).addTo(map),
+          adss_spojnica = sourceAdssSpojnica.getLayer("geonode:adss_spojnica", { cql_filter: "INCLUDE", transparent: true }).addTo(map),
+          adss_spliter = sourceAdssSpliter.getLayer("geonode:adss_spliter", { cql_filter: "INCLUDE", transparent: true }).addTo(map),
+          adss_sekundarna = sourceAdssSekundarna.getLayer("geonode:adss_sekundarna", { cql_filter: "INCLUDE", transparent: true }).addTo(map),
+          adss_rezerva = sourceAdssRezerva.getLayer("geonode:adss_rezerva", { cql_filter: "INCLUDE", transparent: true }).addTo(map),
+          adss_primarna = sourceAdssPrimarna.getLayer("geonode:adss_primarna", { cql_filter: "INCLUDE", transparent: true }).addTo(map),
+          adss_okno = sourceAdssOkno.getLayer("geonode:adss_okno", { cql_filter: "INCLUDE", transparent: true }).addTo(map),
+          adss_kabkan = sourceAdssKabkan.getLayer("geonode:adss_kabkan", { cql_filter: "INCLUDE", transparent: true }).addTo(map),
+          adss_jkp_stubovi = sourceAdssJkpStubovi.getLayer("geonode:adss_jkp_stubovi", { cql_filter: "INCLUDE", transparent: true }).addTo(map);
+
+        var overlay_layer = {
+          digitalniKatastar: digitalniKatastar,
+          opgw_optika: opgw_optika,
+          opgw_spojnica: opgw_spojnica,
+          opgw_kabkan: opgw_kabkan,
+          opgw_cijev: opgw_cijev,
+          opgw_rezerva: opgw_rezerva,
+          opgw_zok: opgw_zok,
+          opgw_okno: opgw_okno,
+          adss_jkp_optika: adss_jkp_optika,
+          adss_ts: adss_ts,
+          adss_zok: adss_zok,
+          adss_stub: adss_stub,
+          adss_spojnica: adss_spojnica,
+          adss_spliter: adss_spliter,
+          adss_sekundarna: adss_sekundarna,
+          adss_rezerva: adss_rezerva,
+          adss_primarna: adss_primarna,
+          adss_okno: adss_okno,
+          adss_kabkan: adss_kabkan,
+          adss_jkp_stubovi: adss_jkp_stubovi
+        };
+
+        var options = {};
+        /* zoom to bbox */
+        var brojac = 0;
+        var i = 0;
+
+        var layerControl = L.control.layers(base_maps, overlay_layer).addTo(map);
+
+        map.on("overlayadd", function(e) {
+          if (e.name === "digitalniKatastar") {
+            e.layer.bringToBack();
+          }
+        });
+
+        $(".leaflet-control-layers-selector")[brojac].click();
+        var hash = new L.Hash(map);
+        var plugin = L.control
+          .measure({
+            position: "topright",
+            primaryLengthUnit: "meters",
+            secondaryLengthUnit: null,
+            primaryAreaUnit: "sqmeters",
+            activeColor: "#ff0000",
+            completedColor: "#000000"
+          })
+          .addTo(map);
+        var drawnItems = new L.FeatureGroup();
+        var drawControl = new L.Control.Draw({
+          position: "bottomright",
+          edit: {
+            featureGroup: drawnItems,
+            remove: false,
+            edit: false
+          },
+          draw: {
+            circlemarker: false
+          }
+        });
+        map.addControl(drawControl);
+        map.createPane("new-pane");
+
+        map.on(L.Draw.Event.CREATED, function(e) {
+          var type = e.layerType,
+            layer = e.layer;
+          if (type === "marker") {
+            layer.bindPopup("A popup!");
+          }
+          drawnItems.addLayer(layer);
+          map.addLayer(drawnItems);
+        });
+        var print_control = L.control
+          .browserPrint({
+            //                printLayer: podloga,
+            closePopupsOnPrint: false,
+            printModes: [
+              L.control.browserPrint.mode.landscape(),
+              "PORTrait",
+              L.control.browserPrint.mode.auto("Auto", "B4"),
+              L.control.browserPrint.mode.custom("Selektuj oblast za štampu", "B5")
+            ]
+          })
+          .addTo(map);
+        map.on("baselayerchange", function(e) {
+          //			print_control.options.printLayer = e.layer;
+        });
+
+        var canvasRenderer = L.canvas();
+
+        L.Control.BrowserPrint.Utils.registerLayer(L.TileLayer.WMS, "L.TileLayer.WMS", function(layer) {
+          return L.tileLayer.wms(layer._url, layer.options);
+        });
+
+        var sidebar = L.control.sidebar({ container: "sidebar" }).addTo(map);
+        var cql_text = "";
+
+        $("#switchAkcija").on("click", function() {
+          blnFokus = !blnFokus;
+        });
+
+        $("#btnKML").on("click", function() {
+          exportVector("KML");
+        });
+        $("#btnSHP").on("click", function() {
+          exportVector("SHAPE-ZIP");
+        });
+        $("#btnCSV").on("click", function() {
+          exportVector("EXCEL2007");
+        });
+        $("#btnKopiranjeLinka").on("click", function() {
+          copyToClipboard(url_copy);
+        });
+        $("#btnCSV").on("click", function() {
+          csvDownload();
+        });
+        $("#btnAtribut").on("click", function() {
+          dodajAtribut();
+        });
+        $("#btnPretraga").on("click", function() {
+          pretraga();
+        });
+        $("#btnRestart").on("click", function() {
+          location.reload(true);
+        });
+
+        wmsLayers = overlay_layer;
+        var lejeri = layerControl;
+        $("#opstina").multiselect({
+          buttonWidth: "100%",
+          selectAllText: " Odaberite sve ",
+          nonSelectedText: "Nema odabranih",
+          allSelectedText: "Sve",
+          enableCaseInsensitiveFiltering: true,
+          includeSelectAllOption: true
+        });
+
+        map.on("draw:created", function(e) {
+          var tipFigure = e.layerType;
+          var figura = e.layer;
+          if (tipFigure === "polygon") {
+            var koordinateFigure = "";
+            for (var i = 0; i < figura.getLatLngs()[0].length; i++) {
+              koordinateFigure += figura.getLatLngs()[0][i].lng + " " + figura.getLatLngs()[0][i].lat + ", ";
+            }
+            koordinateFigure += figura.getLatLngs()[0][0].lng + " " + figura.getLatLngs()[0][0].lat;
+            if (temp_poligon === "") {
+              temp_poligon = "INTERSECTS(Geometry, POLYGON((" + koordinateFigure + ")))";
+            } else {
+              temp_poligon += " OR INTERSECTS(Geometry, POLYGON((" + koordinateFigure + ")))";
+            }
+          }
+        });
+
+        function dodajAtribut() {
+          var atributNaziv = $("#atribut option:selected").text();
+          var atributValue = $("#atribut option:selected").val();
+          var lejerNaziv = $("#ddlLejer option:selected").text();
+          var lejerValue = $("#ddlLejer option:selected").val();
+          var vrijednost = $("#vrijednost").val();
+          if (vrijednost.trim() === "" || typeof vrijednost === undefined) {
+            alert("Potrebno je unijeti vrijednost atributa");
+          } else {
+            AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost);
+          }
+        }
+
+        $("#ddlLejer").on("change", function() {
+          popuniDdlAtributa();
+        });
+
+        popuniDdlVodova();
+
+        var cqlLejer = {
+          opgw_optika: "",
+          opgw_spojnica: "",
+          opgw_kabkan: "",
+          opgw_cijev: "",
+          opgw_rezerva: "",
+          opgw_zok: "",
+          opgw_okno: "",
+          adss_jkp_optika: "",
+          adss_ts: "",
+          adss_zok: "",
+          adss_stub: "",
+          adss_spojnica: "",
+          adss_spliter: "",
+          adss_sekundarna: "",
+          adss_rezerva: "",
+          adss_primarna: "",
+          adss_okno: "",
+          adss_kabkan: "",
+          adss_jkp_stubovi: ""
+        };
+        var kmlControl = L.Control.extend({
+          options: {
+            position: "bottomright"
+          },
+          onAdd: function(map) {
+            var container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
+            container.innerHTML = "KML";
+            container.style.backgroundColor = "white";
+            container.style.width = "30px";
+            container.style.height = "30px";
+            container.onclick = function(event) {
+              exportVector("KML");
+              event.stopPropagation();
+            };
+            return container;
+          }
+        });
+        map.addControl(new kmlControl());
+
+        var shpControl = L.Control.extend({
+          options: {
+            position: "bottomright"
+          },
+          onAdd: function(map) {
+            var container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
+            container.innerHTML = "SHP";
+            container.style.backgroundColor = "white";
+            container.style.width = "30px";
+            container.style.height = "30px";
+            container.onclick = function(event) {
+              exportVector("SHAPE-ZIP");
+              event.stopPropagation();
+            };
+            return container;
+          }
+        });
+
+        map.addControl(new shpControl());
+        var csvControl = L.Control.extend({
+          options: {
+            position: "bottomright"
+          },
+          onAdd: function(map) {
+            var container = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
+            container.innerHTML = "CSV";
+            container.style.backgroundColor = "white";
+            container.style.width = "30px";
+            container.style.height = "30px";
+            container.onclick = function(event) {
+              exportVector("EXCEL2007");
+              event.stopPropagation();
+            };
+            return container;
+          }
+        });
+        map.addControl(new csvControl());
+
+        var lejeriZaFiltriranje = wmsLayers,
+          temp_opstina = "",
+          temp_vod = "",
+          temp_poligon = "",
+          inactive_layers = "",
+          url_copy = "",
+          drawLayer;
+        var hash = new L.Hash(map);
+
+        /**
+         * Popunjava drop down listu atributima u zavisnosti od odabranog lejera.
+         */
+        function popuniDdlAtributa() {
+          $("#atribut").empty();
+          var objekat = $("#ddlLejer option:selected").val();
+
+          $.ajax({
+            url: window.location.protocol + "//" + window.location.hostname + "/portal/services/_getAttributes.php?objekat=" + objekat,
+            data: "", //ur data to be sent to server
+            //            contentType: "application/json; charset=utf-8",
+            type: "GET",
+            success: function(data) {
+              //alert(data);
+              data.data.forEach(function(response) {
+                $("#atribut").append(
+                  $("<option>", {
+                    value: response.column_name,
+                    text: response.column_name
+                  })
+                );
+              });
+            },
+            error: function(x, y, z) {
+              //alert(x.responseText +"  " +x.status);
+            }
+          });
+        }
+
+        popuniDdlVodova();
+
+        function popuniDdlVodova() {
+          var vod = document.querySelector("#divVod");
+          vod.innerHTML = '<label for="vod">Odaberite dalekovode:</label><select id="vod" multiple="multiple"></select>';
+
+          $.ajax({
+            url: window.location.protocol + "//" + window.location.hostname + "/portal/services/_getTransmissionLines.php?naponski_nivo=",
+            data: "",
+            //contentType: "application/json; charset=utf-8",
+            type: "GET",
+            success: function(data) {
+              data.data.forEach(function(vod) {
+                $("#vod").append(
+                  $("<option>", {
+                    selected: "selected",
+                    value: vod.table_name,
+                    text: vod.table_name
+                  })
+                );
+              });
+
+              $("#vod").multiselect({
+                buttonWidth: "100%",
+                enableFiltering: true,
+                maxHeight: 300,
+                selectAllText: " Odaberite sve ",
+                nonSelectedText: "Nema odabranih",
+                allSelectedText: "Svi",
+                enableCaseInsensitiveFiltering: true,
+                includeSelectAllOption: true
+              });
+            },
+            error: function(x, y, z) {
+              console.error(x.responseText + "  " + x.status);
+            }
+          });
+        }
+
+        /**
+         * @return {string} Kreira spisak deaktiviranih lejera
+         */
+        function inactiveLayers() {
+          inactive_layers = "";
+          var brojac = 0;
+
+          lejeri._layers.forEach(function(obj) {
+            if (obj.overlay) {
+              !lejeri._map.hasLayer(obj.layer) && (inactive_layers += brojac.toString() + ",");
+              ((brojac < 14 && lejeri._map.hasLayer(obj.layer)) || (brojac >= 14 && !lejeri._map.hasLayer(obj.layer))) && (inactive_layers += brojac.toString() + ",");
+            }
+            brojac++;
+          });
+          inactive_layers !== "" && (inactive_layers = inactive_layers.substring(0, inactive_layers.length - 1));
+          return inactive_layers;
+        }
+
+        /**
+         * @return {string} Kreira CQL upit za svaki od lejera koji su unešeni u tabelu.
+         */
+        function atributCQL() {
+          $("#tblAtributi tr").each(function(i, row) {
+            if (i > 0) {
+              cqlLejer[row.cells[0].innerHTML] !== "" && cqlLejer[row.cells[0].innerHTML] !== undefined && (cqlLejer[row.cells[0].innerHTML] += " AND ");
+              var formatiraniAtribut = String("(" + row.cells[1].innerHTML + " ILIKE '%" + row.cells[2].innerHTML + "%')");
+              cqlLejer[row.cells[0].innerHTML] += formatiraniAtribut.replace(/;/g, "%' OR " + row.cells[1].innerHTML + " ILIKE '%");
+            }
+          });
+        }
+
+        /**
+         * @return {string} Kreira CQL upit za prikaz samo onih objekata koji se nalaze u iscrtanim poligonima.
+         */
+        function poligonCQL() {
+          temp_poligon !== "" && (temp_poligon = "(" + temp_poligon + ")");
+          return temp_poligon;
+        }
+
+        pocetniFilter();
+
+        /**
+         * Početni filter iz url-a
+         */
+        function pocetniFilter() {
+          popuniDdlAtributa();
+
+          var url = new URL(location.href);
+          //var cql_param = unescape(decodeURI(url.searchParams.get("cql_param")));
+          var cql_param = unescape(url.searchParams.get("cql_param"));
+          lejeri._layers.forEach(function(obj) {
+            var lejerFilter = unescape(url.searchParams.get(obj.name));
+            if (cql_param.length > 5) {
+              if (lejerFilter !== "null" && lejerFilter !== "") {
+                lejerFilter = " AND (" + lejerFilter + ")";
+                obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer._source._overlay.setParams({ cql_filter: cql_param + lejerFilter });
+              } else {
+                obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer._source._overlay.setParams({ cql_filter: cql_param });
+              }
+            } else {
+              lejerFilter !== "null" && lejerFilter !== "" && obj.overlay && lejeri._map.hasLayer(obj.layer) && obj.layer._source._overlay.setParams({ cql_filter: lejerFilter });
+            }
+          });
+
+          var inactive_layers = unescape(url.searchParams.get("inactive_layers"));
+          if (inactive_layers !== "null" && inactive_layers !== "") {
+            var arr = inactive_layers.split(",");
+            for (var i = 0; i < arr.length; i++) {
+              $(".leaflet-control-layers-selector")[Number(arr[i])].click();
+            }
+          }
+        }
+
+        /**
+         * Uklanja sve CQL filtere prirdružene lejeru
+         */
+        function restartovanje() {
+          var url = new URL(location.href);
+          url.searchParams.set("cql_param", "");
+          url.searchParams.set("inactive_layers", "");
+          url_copy = "";
+          for (var key in cqlLejer) {
+            cqlLejer[key] = "";
+          }
+
+          lejeri._layers.forEach(function(obj) {
+            if (obj.overlay) {
+              if (lejeri._map.hasLayer(obj.layer)) {
+                obj.layer._source._overlay.setParams({ cql_filter: "INCLUDE" });
+              }
+            }
+          });
+        }
+
+        /**
+         * @return {string} Kreira CQL upit za prikaz samo onih objekata koji se nalaze u odabranim opštinama.
+         */
+        function opstinaCQL() {
+          temp_opstina = "";
+          if ($("#opstina option:selected").length === $("#opstina option").length) {
+            temp_opstina = "";
+          } else {
+            $.each($("#opstina option:selected"), function() {
+              temp_opstina += "'" + $(this).val() + "',";
+            })
+              .promise()
+              .done(function() {
+                temp_opstina !== "" && (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) && (temp_opstina = "opstina IN (" + temp_opstina + ")");
+              });
+          }
+        }
+
+        /**
+         * @return {string} Kreira CQL upit za prikaz samo onih objekata koji pripadaju odabranim vodovima.
+         */
+        function vodCQL() {
+          temp_vod = "";
+          if ($("#vod option:selected").length === $("#vod option").length) {
+            temp_vod = "";
+          } else {
+            $.each($("#vod option:selected"), function() {
+              temp_vod += "'" + $(this).val() + "',";
+            })
+              .promise()
+              .done(function() {
+                temp_vod !== "" && (temp_vod = temp_vod.substring(0, temp_vod.length - 1)) && (temp_vod = "layer_name IN (" + temp_vod + ")");
+              });
+          }
+        }
+
+        function pretraga() {
+          cql_text = "";
+
+          if ($("#opstina option:selected").length === 0 || $("#vod option:selected").length === 0) {
+            alert("Potrebno je odabrati bar jednu opštinu i kablovski vod");
+            return false;
+          }
+          if ($("#vod option:selected").length !== $("#vod option").length && $("#vod option:selected").length > 10) {
+            alert("Moguće je odabrati sve ili maksimalno 10 kablovskih vodova");
+            return false;
+          }
+          restartovanje();
+          opstinaCQL();
+          vodCQL();
+          poligonCQL();
+          atributCQL();
+          inactiveLayers();
+
+          if (blnFokus) {
+            setTimeout(setZoom, 10);
+          } else {
+            setTimeout(formirajUrl, 10);
+          }
+        }
+
+        function formirajUrl() {
+          temp_opstina !== "" && (cql_text = temp_opstina);
+
+          cql_text !== "" && temp_vod !== "" && (cql_text += " AND ");
+          temp_vod !== "" && (cql_text += temp_vod);
+
+          cql_text !== "" && temp_poligon !== "" && (cql_text += " AND ");
+          temp_poligon !== "" && (cql_text += temp_poligon);
+
+          var url = new URL(location.href);
+          url.searchParams.set("cql_param", encodeURIComponent(cql_text));
+          url.searchParams.set("inactive_layers", encodeURIComponent(inactive_layers));
+          lejeri._layers.forEach(function(obj) {
+            if (obj.overlay && obj.name != "digitalniKatastar") {
+              cqlLejer[obj.name].length > 0 && (cqlLejer[obj.name] = "(" + cqlLejer[obj.name] + ")");
+              url.searchParams.set(obj.name, encodeURIComponent(cqlLejer[obj.name]));
+              if (lejeri._map.hasLayer(obj.layer)) {
+                if (cql_text !== "") {
+                  if (cqlLejer[obj.name] !== "") {
+                    obj.layer._source._overlay.setParams({ cql_filter: cql_text + " AND " + cqlLejer[obj.name] });
+                  } else {
+                    obj.layer._source._overlay.setParams({ cql_filter: cql_text });
+                  }
+                } else {
+                  if (cqlLejer[obj.name] !== "") {
+                    obj.layer._source._overlay.setParams({ cql_filter: cqlLejer[obj.name] });
+                  }
+                }
+              }
+            }
+          });
+          url_copy = url.href;
+        }
+
+        function copyToClipboard(text) {
+          var dummy = document.createElement("textarea");
+          document.body.appendChild(dummy);
+          dummy.value = text;
+          dummy.select();
+          document.execCommand("copy");
+          document.body.removeChild(dummy);
+          if (text.trim() === "") {
+            alert("Potrebno je kreirati filter.");
+          } else {
+            alert("Link je uspješno kopiran.");
+          }
+        }
+
+        function AddAttribute(lejerNaziv, lejerValue, atributNaziv, atributValue, vrijednost) {
+          var tBody = $("#tblAtributi > TBODY")[0];
+          var noviAtribut = true;
+          $("#tblAtributi tr").each(function(i, row) {
+            if (i > 0) {
+              if (row.cells[0].innerHTML == lejerValue.replace("geonode:", "") && row.cells[1].innerHTML == atributValue) {
+                row.cells[2].innerHTML = row.cells[2].innerHTML + ";" + vrijednost;
+                noviAtribut = false;
+              }
+            }
+          });
+
+          if (noviAtribut) {
+            row = tBody.insertRow(-1);
+
+            var cell = $(row.insertCell(-1));
+            cell.html(lejerValue.replace("geonode:", ""));
+            cell = $(row.insertCell(-1));
+            cell.html(atributValue);
+            cell = $(row.insertCell(-1));
+            cell.html(vrijednost);
+
+            cell = $(row.insertCell(-1));
+            var btnRemove = $("<input />");
+            btnRemove.attr("type", "button");
+            btnRemove.attr("class", "btn btn-danger btn-sm");
+            //btnRemove.attr("onclick", "RemoveAttribute(this);");
+            btnRemove.val("X");
+            cell.append(btnRemove);
+            dodajClickEventRemoveDugmetu(btnRemove);
+          }
+        }
+
+        function RemoveAttribute(button) {
+          var row = $(button).closest("TR");
+          var name = $("TD", row)
+            .eq(0)
+            .html();
+          var table = $("#tblAtributi")[0];
+          table.deleteRow(row[0].rowIndex);
+        }
+
+        function dodajClickEventRemoveDugmetu(btn) {
+          //Pošto u CEDIS-u ne radi standardan način
+          var dugmad = document.querySelectorAll(".btn-sm");
+          var last = dugmad[dugmad.length - 1];
+          last.addEventListener("click", function() {
+            RemoveAttribute(last);
+          });
+        }
+
+        function exportVector(formatFajla) {
+          var brojac = -1;
+          lejeri._layers.forEach(function(obj) {
+            if (obj.overlay) {
+              if (lejeri._map.hasLayer(obj.layer)) {
+                brojac++;
+                setTimeout(function() {
+                  if (formatFajla === "SHAPE-ZIP") {
+                    var shpOptions = {
+                      folder: obj.name,
+                      types: {
+                        point: "points-" + obj.name,
+                        polygon: "polygons-" + obj.name,
+                        line: "lines-" + obj.name
+                      }
+                    };
+                  }
+                  var name_type = obj.layer._name;
+                  var filter_cql = obj.layer._source._overlay.wmsParams.cql_filter;
+                  var defaultParameters;
+                  (filter_cql === undefined || filter_cql === "null") && (filter_cql = "");
+
+                  if (filter_cql === "") {
+                    defaultParameters = {
+                      service: "WFS",
+                      version: "1.0.0",
+                      request: "GetFeature",
+                      typeName: name_type,
+                      outputFormat: formatFajla,
+                      format_options: "callback:getJson",
+                      SrsName: "EPSG:4326"
+                    };
+                  } else {
+                    defaultParameters = {
+                      service: "WFS",
+                      version: "1.0.0",
+                      request: "GetFeature",
+                      typeName: name_type,
+                      outputFormat: formatFajla,
+                      format_options: "callback:getJson",
+                      cql_filter: filter_cql,
+                      SrsName: "EPSG:4326"
+                    };
+                  }
+
+                  var parameters = L.Util.extend(defaultParameters);
+                  var URL = owsrootUrl + L.Util.getParamString(parameters);
+                  var WFSLayer = null;
+
+                  var link = document.createElement("a");
+                  link.download = obj.layer._name;
+                  link.href = URL;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  delete link;
+                }, 10000 * brojac);
+              }
+            }
+          });
+        }
+
+        function setZoom() {
+          var blnAtribut = false;
+          var blnZumirano = false; // Zumira se samo ako je manje od 5 elemenata u pretrazi. Ako je false, označava da nije ispunjen uslov za zumiranje.
+          temp_opstina !== "" && (cql_text = temp_opstina);
+          cql_text !== "" && temp_vod !== "" && (cql_text += " AND ");
+          temp_vod !== "" && (cql_text += temp_vod);
+          cql_text !== "" && temp_poligon !== "" && (cql_text += " AND ");
+          temp_poligon !== "" && (cql_text += temp_poligon);
+          lejeri._layers.forEach(function(obj) {
+            if (obj.overlay) {
+              if (lejeri._map.hasLayer(obj.layer)) {
+                if (cqlLejer[obj.name].length > 7 && !blnAtribut) {
+                  //da ne sadrži samo "INCLUDE" i da nije već zumirano
+                  blnAtribut = true;
+                  var name_type = obj.layer._name;
+                  //var filter_cql = obj.layer._source._overlay.wmsParams.cql_filter;
+                  var filter_cql = cqlLejer[obj.name];
+                  cql_text !== "" && (filter_cql = cql_text + " AND (" + filter_cql + ")");
+                  var defaultParameters = {
+                    service: "WFS",
+                    version: "1.0.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson", // + name_type.replace(":", ""),
+                    cql_filter: filter_cql,
+                    SrsName: "EPSG:4326"
+                  };
+                  var parameters = L.Util.extend(defaultParameters);
+                  var URL = owsrootUrl + L.Util.getParamString(parameters);
+                  var ajax = $.ajax({
+                    url: URL,
+                    dataType: "jsonp",
+                    jsonpCallback: "getJson" //obj.layer._name.replace(":", "") //"getJson"
+                  })
+                    .done(function(response) {
+                      if (response.features.length > 0 && response.features.length <= 5) {
+                        blnZumirano = true;
+                        var minX = 0,
+                          maxX = 0,
+                          minY = 0,
+                          maxY = 0;
+                        response.features.forEach(function(feature) {
+                          for (var i = 0; i < feature.geometry.coordinates.length; i++) {
+                            if (feature.geometry.type.includes("oint")) {
+                              if (minX === 0) {
+                                minX = feature.geometry.coordinates[0];
+                                minY = feature.geometry.coordinates[1];
+                                maxX = feature.geometry.coordinates[0];
+                                maxY = feature.geometry.coordinates[1];
+                              }
+                              minX > feature.geometry.coordinates[0] && (minX = feature.geometry.coordinates[0]);
+                              minY > feature.geometry.coordinates[1] && (minY = feature.geometry.coordinates[1]);
+                              maxX < feature.geometry.coordinates[0] && (maxX = feature.geometry.coordinates[0]);
+                              maxY < feature.geometry.coordinates[1] && (maxY = feature.geometry.coordinates[1]);
+                            } else {
+                              if (minX === 0) {
+                                minX = feature.geometry.coordinates[i][0];
+                                minY = feature.geometry.coordinates[i][1];
+                                maxX = feature.geometry.coordinates[i][0];
+                                maxY = feature.geometry.coordinates[i][1];
+                              }
+                              minX > feature.geometry.coordinates[i][0] && (minX = feature.geometry.coordinates[i][0]);
+                              minY > feature.geometry.coordinates[i][1] && (minY = feature.geometry.coordinates[i][1]);
+                              maxX < feature.geometry.coordinates[i][0] && (maxX = feature.geometry.coordinates[i][0]);
+                              maxY < feature.geometry.coordinates[i][1] && (maxY = feature.geometry.coordinates[i][1]);
+                            }
+                          }
+                        });
+
+                        setTimeout(function() {
+                          if (minX > 0) {
+                            var zoom = 9;
+                            var maxDistance = maxX - minX;
+                            maxDistance < maxY - minY && (maxDistance = maxY - minY);
+                            if (maxDistance >= 1) {
+                              zoom = 9;
+                            } else if (maxDistance >= 0.1) {
+                              zoom = 10;
+                            } else if (maxDistance >= 0.01) {
+                              zoom = 12;
+                            } else if (maxDistance >= 0.001) {
+                              zoom = 13;
+                            } else if (maxDistance >= 0.0001) {
+                              zoom = 14;
+                            } else if (maxDistance >= 0.00001) {
+                              zoom = 16;
+                            } else if (maxDistance < 0.00001) {
+                              zoom = 18;
+                            }
+                            map.setView(new L.LatLng((minY + maxY) / 2, (minX + maxX) / 2), zoom);
+                          }
+                        }, 100);
+                      } else {
+                        //Ako nije bilo između 1 i 5
+                        if ($("#vod option:selected").size() <= 2 && !blnZumirano) {
+                          lejeri._layers.forEach(function(obj) {
+                            if (obj.overlay && !blnZumirano) {
+                              if (lejeri._map.hasLayer(obj.layer)) {
+                                var name_type = obj.layer._name;
+                                var filter_cql = temp_vod;
+                                var defaultParameters = {
+                                  service: "WFS",
+                                  version: "1.0.0",
+                                  request: "GetFeature",
+                                  typeName: name_type,
+                                  outputFormat: "text/javascript",
+                                  format_options: "callback:getJson", // + name_type.replace(":", ""),
+                                  cql_filter: filter_cql,
+                                  SrsName: "EPSG:4326"
+                                };
+                                var parameters = L.Util.extend(defaultParameters);
+                                var URL = owsrootUrl + L.Util.getParamString(parameters);
+                                var ajax = $.ajax({
+                                  url: URL,
+                                  dataType: "jsonp",
+                                  jsonpCallback: "getJson" //name_type.replace(":", "") //"getJson"
+                                })
+                                  .done(function(response) {
+                                    if (response.features.length > 0) {
+                                      blnZumirano = true;
+                                      var minX = 0,
+                                        maxX = 0,
+                                        minY = 0,
+                                        maxY = 0;
+                                      response.features.forEach(function(feature) {
+                                        for (var i = 0; i < feature.geometry.coordinates.length; i++) {
+                                          if (feature.geometry.type.includes("oint")) {
+                                            if (minX === 0) {
+                                              minX = feature.geometry.coordinates[0];
+                                              minY = feature.geometry.coordinates[1];
+                                              maxX = feature.geometry.coordinates[0];
+                                              maxY = feature.geometry.coordinates[1];
+                                            }
+                                            minX > feature.geometry.coordinates[0] && (minX = feature.geometry.coordinates[0]);
+                                            minY > feature.geometry.coordinates[1] && (minY = feature.geometry.coordinates[1]);
+                                            maxX < feature.geometry.coordinates[0] && (maxX = feature.geometry.coordinates[0]);
+                                            maxY < feature.geometry.coordinates[1] && (maxY = feature.geometry.coordinates[1]);
+                                          } else {
+                                            if (minX === 0) {
+                                              minX = feature.geometry.coordinates[i][0];
+                                              minY = feature.geometry.coordinates[i][1];
+                                              maxX = feature.geometry.coordinates[i][0];
+                                              maxY = feature.geometry.coordinates[i][1];
+                                            }
+                                            minX > feature.geometry.coordinates[i][0] && (minX = feature.geometry.coordinates[i][0]);
+                                            minY > feature.geometry.coordinates[i][1] && (minY = feature.geometry.coordinates[i][1]);
+                                            maxX < feature.geometry.coordinates[i][0] && (maxX = feature.geometry.coordinates[i][0]);
+                                            maxY < feature.geometry.coordinates[i][1] && (maxY = feature.geometry.coordinates[i][1]);
+                                          }
+                                        }
+                                      });
+                                      setTimeout(function() {
+                                        if (minX > 0) {
+                                          var zoom = 9;
+                                          var maxDistance = maxX - minX;
+                                          maxDistance < maxY - minY && (maxDistance = maxY - minY);
+                                          if (maxDistance >= 1) {
+                                            zoom = 9;
+                                          } else if (maxDistance >= 0.1) {
+                                            zoom = 10;
+                                          } else if (maxDistance >= 0.01) {
+                                            zoom = 12;
+                                          } else if (maxDistance >= 0.001) {
+                                            zoom = 13;
+                                          } else if (maxDistance >= 0.0001) {
+                                            zoom = 14;
+                                          } else if (maxDistance >= 0.00001) {
+                                            zoom = 16;
+                                          } else if (maxDistance < 0.00001) {
+                                            zoom = 18;
+                                          }
+                                          map.setView(new L.LatLng((minY + maxY) / 2, (minX + maxX) / 2), zoom);
+                                        }
+                                      }, 100);
+                                    }
+                                  })
+                                  .fail(function(jqxhr, textStatus, error) {
+                                    var err = textStatus + ", " + error;
+                                    console.log("Request Failed: " + err);
+                                    console.log(jqxhr);
+                                  });
+                              }
+                            }
+                          });
+                        }
+                      }
+                    })
+                    .fail(function(jqxhr, textStatus, error) {
+                      var err = textStatus + ", " + error;
+                      console.log("Request Failed: " + err);
+                      console.log(jqxhr);
+                    });
+                }
+              }
+            }
+          });
+          //Ako se radi pretraga po vodovima
+          if ($("#vod option:selected").size() <= 2 && !blnAtribut) {
+            lejeri._layers.forEach(function(obj) {
+              if (obj.overlay && !blnZumirano) {
+                if (lejeri._map.hasLayer(obj.layer)) {
+                  var name_type = obj.layer._name;
+                  var filter_cql = temp_vod;
+                  var defaultParameters = {
+                    service: "WFS",
+                    version: "1.0.0",
+                    request: "GetFeature",
+                    typeName: name_type,
+                    outputFormat: "text/javascript",
+                    format_options: "callback:getJson", // + name_type.replace(":", ""),
+                    cql_filter: filter_cql,
+                    SrsName: "EPSG:4326"
+                  };
+                  var parameters = L.Util.extend(defaultParameters);
+                  var URL = owsrootUrl + L.Util.getParamString(parameters);
+                  var ajax = $.ajax({
+                    url: URL,
+                    dataType: "jsonp",
+                    jsonpCallback: "getJson" //name_type.replace(":", "") //"getJson"
+                  })
+                    .done(function(response) {
+                      if (response.features.length > 0) {
+                        blnZumirano = true;
+                        var minX = 0,
+                          maxX = 0,
+                          minY = 0,
+                          maxY = 0;
+                        response.features.forEach(function(feature) {
+                          for (var i = 0; i < feature.geometry.coordinates.length; i++) {
+                            if (feature.geometry.type.includes("oint")) {
+                              if (minX === 0) {
+                                minX = feature.geometry.coordinates[0];
+                                minY = feature.geometry.coordinates[1];
+                                maxX = feature.geometry.coordinates[0];
+                                maxY = feature.geometry.coordinates[1];
+                              }
+                              minX > feature.geometry.coordinates[0] && (minX = feature.geometry.coordinates[0]);
+                              minY > feature.geometry.coordinates[1] && (minY = feature.geometry.coordinates[1]);
+                              maxX < feature.geometry.coordinates[0] && (maxX = feature.geometry.coordinates[0]);
+                              maxY < feature.geometry.coordinates[1] && (maxY = feature.geometry.coordinates[1]);
+                            } else {
+                              if (minX === 0) {
+                                minX = feature.geometry.coordinates[i][0];
+                                minY = feature.geometry.coordinates[i][1];
+                                maxX = feature.geometry.coordinates[i][0];
+                                maxY = feature.geometry.coordinates[i][1];
+                              }
+                              minX > feature.geometry.coordinates[i][0] && (minX = feature.geometry.coordinates[i][0]);
+                              minY > feature.geometry.coordinates[i][1] && (minY = feature.geometry.coordinates[i][1]);
+                              maxX < feature.geometry.coordinates[i][0] && (maxX = feature.geometry.coordinates[i][0]);
+                              maxY < feature.geometry.coordinates[i][1] && (maxY = feature.geometry.coordinates[i][1]);
+                            }
+                          }
+                        });
+                        setTimeout(function() {
+                          if (minX > 0) {
+                            var zoom = 9;
+                            var maxDistance = maxX - minX;
+                            maxDistance < maxY - minY && (maxDistance = maxY - minY);
+                            if (maxDistance >= 1) {
+                              zoom = 9;
+                            } else if (maxDistance >= 0.1) {
+                              zoom = 10;
+                            } else if (maxDistance >= 0.01) {
+                              zoom = 12;
+                            } else if (maxDistance >= 0.001) {
+                              zoom = 13;
+                            } else if (maxDistance >= 0.0001) {
+                              zoom = 14;
+                            } else if (maxDistance >= 0.00001) {
+                              zoom = 16;
+                            } else if (maxDistance < 0.00001) {
+                              zoom = 18;
+                            }
+                            map.setView(new L.LatLng((minY + maxY) / 2, (minX + maxX) / 2), zoom);
+                          }
+                        }, 100);
+                      }
+                    })
+                    .fail(function(jqxhr, textStatus, error) {
+                      var err = textStatus + ", " + error;
+                      console.log("Request Failed: " + err);
+                      console.log(jqxhr);
+                    });
+                }
+              }
+            });
+          }
+
+          setTimeout(function() {
+            if (!blnZumirano) {
+              map.setView(new L.LatLng(42.73, 19.55), 9);
+            }
+          }, 200);
+        }
+      });
+    </script>
+    <div id="map"></div>
+  </body>
+</html>
