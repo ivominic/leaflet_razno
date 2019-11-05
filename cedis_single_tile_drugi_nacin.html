@@ -215,8 +215,8 @@
       // });
       // overlay.addTo(map);
 
-      var options1 = { transparent: "true", format: "image/png", info_format: "text/html", feature_count: "5" };
-      var options2 = { transparent: "true", format: "image/png", info_format: "text/html", feature_count: "5" };
+      var options1 = { transparent: "true", format: "image/png", info_format: "text/html", propertyName: "fid,name", feature_count: "5" };
+      var options2 = { transparent: "true", format: "image/png", info_format: "text/html", propertyName: "fid,name", feature_count: "5" };
       var source = L.WMS.source(url, options1);
       var source1 = L.WMS.source(url, options2);
       var jezero = source1.getLayer("winsoft:Katastar", { cql_filter: "INCLUDE" }).addTo(map);
