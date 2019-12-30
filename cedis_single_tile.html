@@ -140,9 +140,9 @@
           <div class="form-group">
             <button type="button" class="btn btn-success" id="btnPretraga" onclick="pretraga()">Pretraga</button>
             <button type="button" class="btn btn-danger" id="btnRestart" onclick="restartovanje()">Restart</button>
-            <button type="button" class="btn btn-info" id="btnLista" onclick="eksportKML()">KML</button>
-            <button type="button" class="btn btn-info" id="btnLista" onclick="shpDownload()">SHP</button>
-            <button type="button" class="btn btn-info" id="btnLista" onclick="csvDownload()">CSV</button>
+            <button type="button" class="btn btn-info" id="btnKML" onclick="eksportKML()">KML</button>
+            <button type="button" class="btn btn-info" id="btnSHP" onclick="shpDownload()">SHP</button>
+            <button type="button" class="btn btn-info" id="btnCSV" onclick="csvDownload()">CSV</button>
             <button type="button" class="btn btn-info" id="btnKopiranjeLinka" onclick="copyToClipboard(url_copy)">Link</button>
 
             <table id="tblAtributi" class=" table order-list table-responsive">
@@ -184,7 +184,11 @@
         includeSelectAllOption: true
       });
 
-      var mapaLejera = new Map([["planinica", "Planinica"], ["jezero", "Jezero"], ["treci", "Treci"]]);
+      var mapaLejera = new Map([
+        ["planinica", "Planinica"],
+        ["jezero", "Jezero"],
+        ["treci", "Treci"]
+      ]);
 
       var atributiDdl = {
         Planinica: planinicaAtributi,
@@ -594,9 +598,7 @@
           })
             .promise()
             .done(function() {
-              temp_opstina !== "" &&
-                (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) &&
-                (temp_opstina = "v_opstina IN (" + temp_opstina + ")");
+              temp_opstina !== "" && (temp_opstina = temp_opstina.substring(0, temp_opstina.length - 1)) && (temp_opstina = "v_opstina IN (" + temp_opstina + ")");
             });
         }
       }
