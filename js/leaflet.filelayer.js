@@ -23,7 +23,7 @@ var FileLoader = L.Class.extend({
         };
     },
 
-    load: function (file /* File */) {
+    load: function (file /* File */ ) {
         // Check file size
         var fileSize = (file.size / 1024).toFixed(4);
         if (fileSize > this.options.fileSizeLimit) {
@@ -46,12 +46,20 @@ var FileLoader = L.Class.extend({
         var reader = new FileReader();
         reader.onload = L.Util.bind(function (e) {
             try {
-                this.fire('data:loading', {filename: file.name, format: ext});
+                this.fire('data:loading', {
+                    filename: file.name,
+                    format: ext
+                });
                 var layer = parser.call(this, e.target.result, ext);
-                this.fire('data:loaded', {layer: layer, filename: file.name, format: ext});
-            }
-            catch (err) {
-                this.fire('data:error', {error: err});
+                this.fire('data:loaded', {
+                    layer: layer,
+                    filename: file.name,
+                    format: ext
+                });
+            } catch (err) {
+                this.fire('data:error', {
+                    error: err
+                });
             }
 
         }, this);
@@ -64,13 +72,15 @@ var FileLoader = L.Class.extend({
             content = JSON.parse(content);
         }
         //var layer = L.geoJson(content, this.options.layerOptions);
-        var layer = L.geoJson(content, {style: {
-            color:'red',
-            opacity: 0.8
-          },
-            onEachFeature: function (feature, layer) {            
-              layer.bindPopup('<h1>'+feature.properties.name+'</h1><p>'+feature.properties.description+'</p>');
-            }});
+        var layer = L.geoJson(content, {
+            style: {
+                color: 'red',
+                opacity: 0.8
+            },
+            onEachFeature: function (feature, layer) {
+                layer.bindPopup('<h1>' + feature.properties.name + '</h1><p>' + feature.properties.description + '</p>');
+            }
+        });
         /*layer.on({
             click: function(e) {
                 console.log(e.sourceTarget.feature.properties.name);
@@ -83,9 +93,9 @@ var FileLoader = L.Class.extend({
             throw new Error('GeoJSON has no valid layers.');
         }
 
-        if (this.options.addToMap) {                       
+        if (this.options.addToMap) {
             layer.addTo(this._map);
-        }        
+        }
 
         return layer;
     },
@@ -93,7 +103,7 @@ var FileLoader = L.Class.extend({
     _convertToGeoJSON: function (content, format) {
         // Format is either 'gpx' or 'kml'
         if (typeof content == 'string') {
-            content = ( new window.DOMParser() ).parseFromString(content, "text/xml");
+            content = (new window.DOMParser()).parseFromString(content, "text/xml");
         }
         var geojson = toGeoJSON[format](content);
         return this._loadGeoJSON(geojson);
@@ -129,6 +139,9 @@ L.Control.FileLayerLoad = L.Control.extend({
                     map.fitBounds(e.layer.getBounds());
                 }, 500);
             }
+            //map.addLayer(e.layer);
+            var lejerGrupa = L.layerGroup().addLayer(e.layer.getBounds());
+            layerControl.addOverlay(lejerGrupa, e.filename);
         }, this);
 
         // Initialize Drag-and-drop
@@ -159,7 +172,7 @@ L.Control.FileLayerLoad = L.Control.extend({
 
                 var files = Array.prototype.slice.apply(e.dataTransfer.files),
                     i = files.length;
-                setTimeout(function(){
+                setTimeout(function () {
                     fileLoader.load(files.shift());
                     if (files.length > 0) {
                         setTimeout(arguments.callee, 25);
@@ -213,39 +226,39 @@ L.Control.fileLayerLoad = function (options) {
     return new L.Control.FileLayerLoad(options);
 };
 
-    // handle click events on garden features
-    function gardenOnEachFeature(feature, layer){
-        layer.on({
-          click: function(e) {
-            if (selection) {            
-              resetStyles();
+// handle click events on garden features
+function gardenOnEachFeature(feature, layer) {
+    layer.on({
+        click: function (e) {
+            if (selection) {
+                resetStyles();
             }
-                    
+
             e.target.setStyle(gardenSelectedStyle());
             selection = e.target;
             selectedLayer = gardenLayer;
-      
+
             // Insert some HTML with the feature name
             buildSummaryLabel(feature);
-      
+
             L.DomEvent.stopPropagation(e); // stop click event from being propagated further
-          }
-        });
-    }
+        }
+    });
+}
 
 // define the styles for the garden layer (unselected and selected)
 function gardenStyle(feature) {
     return {
-      fillColor: "#FF00FF",
-      fillOpacity: 1,
-      color: '#B04173',
+        fillColor: "#FF00FF",
+        fillOpacity: 1,
+        color: '#B04173',
     };
-  }
-  
-  function gardenSelectedStyle(feature) {
+}
+
+function gardenSelectedStyle(feature) {
     return {
-      fillColor: "#00FFFB",
-      color: '#0000FF',
-      fillOpacity: 1
+        fillColor: "#00FFFB",
+        color: '#0000FF',
+        fillOpacity: 1
     };
-  }
+}

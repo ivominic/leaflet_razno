@@ -17,9 +17,9 @@
   </head>
   <body>
     <div id="map"></div>
-    <form action="#" onsubmit="return false;">
+    <form action="#" onsubmit="return false;" style="display: none;">
       <input type="file" id="fileinput" />
-      <input type="button" id="btnLoad" value="Load" onclick="loadFile();" />
+      <input type="button" id="btnLoad" value="Load" onclick="loadFile();" style="display: ;" />
     </form>
     <script src="js/leaflet.filelayer.js"></script>
     <script src="js/togeojson.js"></script>
@@ -33,9 +33,14 @@
         zoom: 7,
       });
 
-      L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
+      var podloga = L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png");
+      podloga.addTo(map);
+      var baseLayers = {
+        Podloga: podloga,
+      };
+      var layerControl = L.control.layers(baseLayers).addTo(map);
 
-      L.Control.fileLayerLoad({
+      var kmlFile = L.Control.fileLayerLoad({
         layerOptions: {
           style: {
             color: "red",
