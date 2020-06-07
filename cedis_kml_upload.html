@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Upload KML</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
+    <style type="text/css">
+      html,
+      body,
+      #map {
+        margin: 0px;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <form action="#" onsubmit="return false;">
+      <input type="file" id="fileinput" />
+      <input type="button" id="btnLoad" value="Load" onclick="loadFile();" />
+    </form>
+    <script src="js/leaflet.filelayer.js"></script>
+    <script src="js/togeojson.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="js/KML.js"></script>
+    <link rel="stylesheet" href="css/font-awesome.min.css" />
+
+    <script>
+      var map = L.map("map", {
+        center: [42, 20],
+        zoom: 7,
+      });
+
+      L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
+
+      L.Control.fileLayerLoad({
+        layerOptions: {
+          style: {
+            color: "red",
+            opacity: 0.8,
+          },
+        },
+      }).addTo(map);
+    </script>
+  </body>
+</html>
